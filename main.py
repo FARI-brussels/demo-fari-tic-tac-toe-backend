@@ -70,7 +70,10 @@ def play():
             return jsonify({"message": "Invalid input"}), 400
 
         # Decode the base64 image
-        image_bytes = base64.b64decode(image_data.split(",")[1])
+        try:
+            image_bytes = base64.b64decode(image_data.split(",")[1])
+        except IndexError:
+            return jsonify({"error": "Invalid image data format"}), 400
         image = np.frombuffer(image_bytes, dtype=np.uint8)
 
         # Get the current state of the grid
