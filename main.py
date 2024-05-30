@@ -43,6 +43,16 @@ oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, api=api, simula
 
 @app.route('/draw_grid', methods=['POST'])
 def draw_grid():
+    """
+    API endpoint to draw the Tic-Tac-Toe grid.
+
+    Request Body:
+        center (list): Coordinates of the grid center.
+        size (list): Size of the grid.
+
+    Returns:
+        json: Response message.
+    """
     try:
         data = request.get_json()
         center = data.get('center')
@@ -63,6 +73,15 @@ def draw_grid():
 
 @app.route('/play', methods=['POST'])
 def play():
+    """
+    API endpoint to play a move in the Tic-Tac-Toe game.
+
+    Request Body:
+        image (str): Base64 encoded image data.
+
+    Returns:
+        json: Response containing the grid state, move, game status, and winner.
+    """
     try:
         data = request.get_json()
         image_data = data.get('image')

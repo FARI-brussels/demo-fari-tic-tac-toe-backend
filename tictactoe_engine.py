@@ -6,6 +6,15 @@ import numpy as np
 
 
 def evaluate(board):
+    """
+    Evaluates the board to check for a win.
+
+    Args:
+        board (list): 3x3 grid representing the Tic-Tac-Toe board state.
+
+    Returns:
+        int: Score indicating the result of the evaluation.
+    """
     # Check rows, columns, and diagonals for a win
     for i in range(3):
         if board[i][0] == board[i][1] == board[i][2] and board[i][0] != ' ':
@@ -22,6 +31,20 @@ def evaluate(board):
     return 0
 
 def minimax(board, depth, is_max, alpha, beta, player_letter):
+    """
+    Minimax algorithm to find the best move.
+
+    Args:
+        board (list): 3x3 grid representing the Tic-Tac-Toe board state.
+        depth (int): Current depth of the recursion.
+        is_max (bool): Flag indicating if the current move is maximizing.
+        alpha (float): Alpha value for alpha-beta pruning.
+        beta (float): Beta value for alpha-beta pruning.
+        player_letter (str): Letter representing the current player ('X' or 'O').
+
+    Returns:
+        int: Best score for the current move.
+    """
     score = evaluate(board)
 
     if score == 10:
@@ -62,6 +85,15 @@ def minimax(board, depth, is_max, alpha, beta, player_letter):
         return min_eval
 
 def find_best_move(board):
+    """
+    Finds the best move for the current board state.
+
+    Args:
+        board (list): 3x3 grid representing the Tic-Tac-Toe board state.
+
+    Returns:
+        tuple: Best move coordinates and the player letter.
+    """
     x_count = sum(row.count('X') for row in board)
     o_count = sum(row.count('O') for row in board)
     
@@ -96,6 +128,15 @@ def find_best_move(board):
 
 
 def check_win(board):
+    """
+    Checks if there is a win on the board.
+
+    Args:
+        board (list): 3x3 grid representing the Tic-Tac-Toe board state.
+
+    Returns:
+        tuple: Boolean indicating if there is a win and the winning player letter.
+    """
     # Check rows, columns, and diagonals for a win
     for i in range(3):
         # Check rows

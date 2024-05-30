@@ -4,6 +4,15 @@ CLASS_NAMES = ["O", "X", "grid"]
 
 
 def bb_to_tictactoe_grid(bounding_boxes_dict):
+    """
+    Converts bounding box coordinates to a Tic-Tac-Toe grid state.
+
+    Args:
+        bounding_boxes_dict (dict): Dictionary containing bounding box coordinates.
+
+    Returns:
+        list: 3x3 grid representing the Tic-Tac-Toe board state.
+    """
     # Extract the bounding box of the grid
     grid_center_x, grid_center_y, grid_w, grid_h = bounding_boxes_dict['grid'][0]
     cell_w = grid_w / 3
@@ -36,6 +45,17 @@ def bb_to_tictactoe_grid(bounding_boxes_dict):
 
 
 def preprocess_bboxes(bboxes, class_names, conf_threshold=0.5):
+    """
+    Preprocesses bounding boxes to filter by confidence threshold.
+
+    Args:
+        bboxes (list): List of bounding boxes.
+        class_names (list): List of class names.
+        conf_threshold (float): Confidence threshold for filtering.
+
+    Returns:
+        dict: Dictionary of filtered bounding boxes by class name.
+    """
     result = {class_name: [] for class_name in class_names}
     for box in bboxes:
         conf = box.conf.item()
@@ -50,6 +70,15 @@ def preprocess_bboxes(bboxes, class_names, conf_threshold=0.5):
     return result
 
 def image_to_tictactoe_grid(image):
+    """
+    Converts an image to a Tic-Tac-Toe grid state.
+
+    Args:
+        image (str): Path to the image file.
+
+    Returns:
+        list: 3x3 grid representing the Tic-Tac-Toe board state.
+    """
     results = MODEL("/home/mrcyme/Documents/FARI/repositories/demo-fari-tic-tac-toe-backend/tests/test_image_win.png", stream=False)
     for r in results:
         bboxes = preprocess_bboxes(r.boxes, CLASS_NAMES)
