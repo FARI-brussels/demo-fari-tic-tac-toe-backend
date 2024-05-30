@@ -98,7 +98,7 @@ curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '
 Response:
 ```json
 {
-    "grid_state": [["0 ", "", " "], ["O", "X", " "], [" ", " ", " "]],
+    "grid_state": [["0", "", " "], ["O", "X", " "], ["X", " ", " "]],
     "move": "letter : X in (2,0)",
     "game_is_finished": false,
     "winner": null
@@ -116,7 +116,7 @@ curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '
 Response:
 ```json
 {
-    "grid_state": [["X", "X", ""], ["O", "O", " "], ["O", " ", " "]],
+    "grid_state": [["X", "X", "X"], ["O", "O", " "], ["O", " ", " "]],
     "move": "letter : X in (2, 0)",
     "game_is_finished": true,
     "winner": "X"
