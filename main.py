@@ -38,7 +38,8 @@ if "REAL" in MODES:
 q_rest = [100, -9, 50, -170 ,-40,- 190]
 q_rest = np.radians(q_rest)
 ROBOT.q = q_rest
-oxoplayer = OXOPlayer(ROBOT, api=api, simulation=simulation, scene=scene, record=False)
+oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, api=api, simulation=simulation, scene=scene, record=False)
+
 
 @app.route('/draw_grid', methods=['POST'])
 def draw_grid():
@@ -50,7 +51,7 @@ def draw_grid():
         if not center or not size:
             return jsonify({"message": "Invalid input"}), 400
 
-        center_position = screen_origin *sm.SE3(center[0], center[1], 0)  # Convert to SE3
+        center_position = sm.SE3(center[0], center[1], 0)  # Convert to SE3
         size_value = size[0]  # Assuming size is a single value for simplicity
 
         oxoplayer.draw_grid(center_position, size_value, q_rest=q_rest)
@@ -74,6 +75,7 @@ def play():
             image_bytes = base64.b64decode(image_data.split(",")[1])
         except IndexError:
             return jsonify({"error": "Invalid image data format"}), 400
+        
         image = np.frombuffer(image_bytes, dtype=np.uint8)
 
         # Get the current state of the grid
@@ -83,18 +85,17 @@ def play():
         best_move, player_letter = find_best_move(grid_state)
 
         if best_move is None:
-            return jsonify({"game_is_finished": True, "winner": player_letter}), 200
-
-        # Draw the move
-        row, col = best_move
-        cell_center = sm.SE3(row * 10, col * 10, 0)  # Convert to SE3, assuming 10mm per cell
+            return jsonify({"grid_state": grid_state, "move" : f"letter : {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}), 200
+        
+        cell_center, size = oxoplayer.get_cell_center(best_move)
+        
 
         if player_letter == 'X':
-            oxoplayer.draw_x(cell_center, 10)
+            oxoplayer.draw_x(cell_center, size/2, q_rest=q_rest)
         else:
-            oxoplayer.draw_o(cell_center, 5)
+            oxoplayer.draw_o(cell_center, size/2, q_rest=q_rest)
 
-        return jsonify({"game_is_finished": False, "winner": None}), 200
+        return jsonify({"grid_state": grid_state, "move" : f"letter : {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}), 200
 
     except Exception as e:
         raise e
