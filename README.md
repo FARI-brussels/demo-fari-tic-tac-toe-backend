@@ -46,14 +46,14 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     }
     ```
 
-#### Draw Grid Example
+##### Draw Grid Example
 
 Here is an example of how to call the `/draw_grid` endpoint:
 
 ```sh
 curl -X POST http://localhost:5000/draw_grid -H "Content-Type: application/json" -d '{
-    "center": [0.5, 0.5],
-    "size": [0.3]
+    "center": [0.15, 0.15],
+    "size": [0.1]
 }'
 ```
 
@@ -64,43 +64,7 @@ Response:
 }
 ```
 
-#### Play Move Example
-
-Here is an example of how to call the `/play` endpoint with a normal move:
-
-```sh
-curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
-    "image": "base64_encoded_image_data"
-}'
-```
-
-Response:
-```json
-{
-    "grid_state": [[" ", "X", " "], ["O", "X", " "], [" ", " ", " "]],
-    "move": "letter : X in (0, 1)",
-    "game_is_finished": false,
-    "winner": null
-}
-```
-
-Here is an example of how to call the `/play` endpoint with a winning move:
-
-```sh
-curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
-    "image": "base64_encoded_image_data"
-}'
-```
-
-Response:
-```json
-{
-    "grid_state": [["X", "X", "X"], ["O", "O", " "], [" ", " ", " "]],
-    "move": "letter : X in (0, 2)",
-    "game_is_finished": true,
-    "winner": "X"
-}
-```
+#### Play Move
 
 - **URL:** `/play`
 - **Method:** `POST`
@@ -120,6 +84,44 @@ Response:
     }
     ```
     If the game is finished when the play route is called, it does not write a letter and output the winning letter. If the game will be finished after the drawn letter, it writes a letter and output this letter as winning letter.
+
+##### Play Move Example
+
+Here is an example of how to call the `/play` endpoint with a normal move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [["0 ", "", " "], ["O", "X", " "], [" ", " ", " "]],
+    "move": "letter : X in (2,0)",
+    "game_is_finished": false,
+    "winner": null
+}
+```
+
+Here is an example of how to call the `/play` endpoint with a winning move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [["X", "X", ""], ["O", "O", " "], ["O", " ", " "]],
+    "move": "letter : X in (2, 0)",
+    "game_is_finished": true,
+    "winner": "X"
+}
+```
 
 ## Code Documentation
 

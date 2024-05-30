@@ -5,8 +5,8 @@ import json
 def test_draw_grid():
     url = "http://127.0.0.1:5000/draw_grid"
     payload = {
-        "center": [100, 300],
-        "size": [50, 70]
+        "center": [0.1, 0.3],
+        "size": [0.050, 0.070]
     }
     headers = {
         'Content-Type': 'application/json'
@@ -19,7 +19,7 @@ def test_play():
     url = "http://127.0.0.1:5000/play"
     
     # Read the base64 encoded image from test.txt
-    with open("test.txt", "r") as file:
+    with open("test_image.txt", "r") as file:
         base64_image = file.read().strip()
     
     payload = {
