@@ -1,6 +1,6 @@
 # Tic-Tac-Toe Robotic Arm Backend
 
-This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The backend receives commands to draw the grid or to play a move from the frontend, as well as a photo of the current grid when the play order is given.
+This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The backend receives commands to draw the grid or to play a move from the frontend, as well as a base64 encoded photo of the current grid when the play order is given.
 
 ## Installation
 
@@ -10,6 +10,7 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     cd <repository_directory>
     ```
 
+//TODO
 2. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
@@ -37,6 +38,7 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
         "size": [size_value]
     }
     ```
+    x, y are the coordinates of the center of the grid on the screen plan. The plan origin is the bottom left corner of the screen. **x, y and size should be given in meters** 
 - **Response:**
     ```json
     {
@@ -57,12 +59,13 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
 - **Response:**
     ```json
     {
-        "grid_state": [[" ", "X", " "], ["O", "X", " "], [" ", " ", " "]],
-        "move": "letter : X in (0, 1)",
-        "game_is_finished": true,
-        "winner": "X"
+        "grid_state": [["l_00", "l_01", "l_02"], ["l_10", "l_11", "l_12"], ["l_20", "l_21", "l_22"]],
+        "move": "letter : l in (i, j)",
+        "game_is_finished": Bool,
+        "winner": "None if not game_is_finished else l"
     }
     ```
+    If the game is finished when the play route is called, it does not write a letter and output the winning letter. If the game will be finished after the drawn letter, it writes a letter and output this letter as winning letter.
 
 ## Code Documentation
 
