@@ -46,7 +46,61 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     }
     ```
 
-#### Play Move
+#### Draw Grid Example
+
+Here is an example of how to call the `/draw_grid` endpoint:
+
+```sh
+curl -X POST http://localhost:5000/draw_grid -H "Content-Type: application/json" -d '{
+    "center": [0.5, 0.5],
+    "size": [0.3]
+}'
+```
+
+Response:
+```json
+{
+    "message": "Grid generated successfully"
+}
+```
+
+#### Play Move Example
+
+Here is an example of how to call the `/play` endpoint with a normal move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [[" ", "X", " "], ["O", "X", " "], [" ", " ", " "]],
+    "move": "letter : X in (0, 1)",
+    "game_is_finished": false,
+    "winner": null
+}
+```
+
+Here is an example of how to call the `/play` endpoint with a winning move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [["X", "X", "X"], ["O", "O", " "], [" ", " ", " "]],
+    "move": "letter : X in (0, 2)",
+    "game_is_finished": true,
+    "winner": "X"
+}
+```
 
 - **URL:** `/play`
 - **Method:** `POST`
