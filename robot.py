@@ -73,7 +73,7 @@ class OXOPlayer:
         self.scene = scene
         if self.simulation:
             self.simulation.launch(realtime=True)
-            self.simulation.add(self.robot, robot_alpha=0.5)
+            self.simulation.add(self.robot)
             for ob in scene:
                 self.simulation.add(ob)
         if self.api:

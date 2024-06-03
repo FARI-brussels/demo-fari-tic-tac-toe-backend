@@ -19,7 +19,7 @@ def test_play():
     url = "http://127.0.0.1:5000/play"
     
     # Read the base64 encoded image from test.txt
-    with open("test_image.txt", "r") as file:
+    with open("/home/mrcyme/Documents/FARI/repositories/demo-fari-tic-tac-toe-backend/tests/images/test_image.txt", "r") as file:
         base64_image = file.read().strip()
     
     payload = {
