@@ -30,39 +30,6 @@ def jacobian_i_k_optimisation(robot, v, qd_max=1):
     result = Solve(prog)
     return result.is_success(), result.GetSolution(qd_opt)
 
-def joint_servo(q, q_dest, gain: Union[float, ArrayLike] = 1.0, threshold=0.1):
-    """
-    Joint-based servoing.
-    Returns the joint velocities which will cause the robot to approach the desired joint positions.
-    
-    :param q: The current joint positions of the robot.
-    :type q: ndarray
-    :param qd: The desired joint positions of the robot.
-    :type qd: ndarray
-    :param gain: The gain for the controller. Can be a scalar or a vector corresponding to each joint.
-    :type gain: float, or array-like
-    :param threshold: The threshold or tolerance of the final error between the robot's joint positions and desired joint positions.
-    :type threshold: float
-    :returns qdd: The joint velocities which will cause the robot to approach qd.
-    :rtype qdd: ndarray(n)
-    :returns arrived: True if the robot is within the threshold of the final joint positions.
-    :rtype arrived: bool
-    """
-    # Joint position error
-    e = q_dest - q
-    
-    if sm.base.isscalar(gain):
-        k = gain * np.eye(len(q))
-    else:
-        k = np.diag(gain)
-    
-    # Joint velocities
-    qdd = k @ e
-    
-    arrived = True if np.sum(np.abs(e)) < threshold else False
-    
-    return qdd, arrived
-
 
 class OXOPlayer:
     def __init__(self, robot, drawing_board_origin, control_loop_rate=30, api=None, simulation=None, scene=None, record=False):
@@ -96,10 +63,10 @@ class OXOPlayer:
             else:
                 q = self.robot.q
             if isinstance(dest, sm.SE3) or (isinstance(dest, np.ndarray) and dest.shape==(4,4)):
-                v, arrived = rtb.p_servo(self.robot.fkine(q), dest, gain=gain, threshold=treshold)
+                v, arrived = rtb.cp_servo(self.robot.fkine(q), dest, gain=gain, threshold=treshold)
                 qd = jacobian_i_k_optimisation(self.robot, v, qd_max=qd_max)[1]
             else:
-                qd, arrived = joint_servo(q, dest, gain=gain, threshold=treshold)
+                qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=treshold)
             self.robot.qd = qd
             self.step(qd, control_variable="qd")
         if self.api:
