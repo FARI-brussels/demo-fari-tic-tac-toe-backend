@@ -15,7 +15,7 @@ class TestTicTacToeEngine(unittest.TestCase):
                  [' ', ' ', ' ']]
         move, player = find_best_move(board)
         self.assertEqual(player, 'O')
-        self.assertEqual(move, (0, 1))
+        self.assertEqual(move, (1, 2))
 
     def test_find_best_move_block_win(self):
         board = [['X', 'X', ' '],
@@ -28,10 +28,19 @@ class TestTicTacToeEngine(unittest.TestCase):
     def test_find_best_move_win(self):
         board = [['X', 'X', ' '],
                  ['O', 'O', ' '],
-                 [' ', ' ', ' ']]
+                 [' ', 'X', ' ']]
         move, player = find_best_move(board)
         self.assertEqual(player, 'O')
         self.assertEqual(move, (1, 2))
+
+    def test_find_win(self):
+        board = [['X', 'X', 'X'],
+                 ['O', 'O', ' '],
+                 [' ', ' ', ' ']]
+        move, player = find_best_move(board)
+        self.assertEqual(player, 'X')
+        self.assertEqual(move, None)
+
 
 if __name__ == '__main__':
     unittest.main()
