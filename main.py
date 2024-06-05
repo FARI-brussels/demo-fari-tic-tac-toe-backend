@@ -101,9 +101,9 @@ def play():
         grid_state = image_to_tictactoe_grid(image)
 
         # Find the best move
-        best_move, player_letter = find_best_move(grid_state)
+        best_move, player_letter, win = find_best_move(grid_state)
 
-        if best_move is None:
+        if best_move is None or win:
             return jsonify({"grid_state": grid_state, "move" : f"letter : {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}), 200
         
         cell_center, size = oxoplayer.get_cell_center(best_move)

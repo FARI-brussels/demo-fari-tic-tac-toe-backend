@@ -5,7 +5,7 @@ class TestTicTacToeEngine(unittest.TestCase):
 
     def test_find_best_move_empty_board(self):
         board = [[' ' for _ in range(3)] for _ in range(3)]
-        move, player = find_best_move(board)
+        move, player, win = find_best_move(board)
         self.assertIn(player, ['X', 'O'])
         self.assertEqual(move, (0, 0))
 
@@ -13,7 +13,7 @@ class TestTicTacToeEngine(unittest.TestCase):
         board = [['X', ' ', ' '],
                  [' ', ' ', ' '],
                  [' ', ' ', ' ']]
-        move, player = find_best_move(board)
+        move, player, win = find_best_move(board)
         self.assertEqual(player, 'O')
         self.assertEqual(move, (1, 2))
 
@@ -21,7 +21,7 @@ class TestTicTacToeEngine(unittest.TestCase):
         board = [['X', 'X', ' '],
                  ['O', ' ', ' '],
                  [' ', ' ', ' ']]
-        move, player = find_best_move(board)
+        move, player, win = find_best_move(board)
         self.assertEqual(player, 'O')
         self.assertEqual(move, (0, 2))
 
@@ -29,7 +29,7 @@ class TestTicTacToeEngine(unittest.TestCase):
         board = [['X', 'X', ' '],
                  ['O', 'O', ' '],
                  [' ', 'X', ' ']]
-        move, player = find_best_move(board)
+        move, player, win = find_best_move(board)
         self.assertEqual(player, 'O')
         self.assertEqual(move, (1, 2))
 
@@ -37,10 +37,18 @@ class TestTicTacToeEngine(unittest.TestCase):
         board = [['X', 'X', 'X'],
                  ['O', 'O', ' '],
                  [' ', ' ', ' ']]
-        move, player = find_best_move(board)
+        move, player, win = find_best_move(board)
         self.assertEqual(player, 'X')
         self.assertEqual(move, None)
+        self.assertTrue(win)
 
 
 if __name__ == '__main__':
     unittest.main()
+    def test_find_best_move_already_won(self):
+        board = [['X', 'X', 'X'],
+                 ['O', ' ', ' '],
+                 [' ', ' ', ' ']]
+        move, player, win = find_best_move(board)
+        self.assertEqual(move, None)
+        self.assertTrue(win)

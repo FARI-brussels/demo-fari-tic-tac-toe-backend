@@ -92,7 +92,7 @@ def find_best_move(board):
         board (list): 3x3 grid representing the Tic-Tac-Toe board state.
 
     Returns:
-        tuple: Best move coordinates and the player letter.
+        tuple: Best move coordinates, the player letter, and a win flag.
     """
     x_count = sum(row.count('X') for row in board)
     o_count = sum(row.count('O') for row in board)
@@ -103,6 +103,10 @@ def find_best_move(board):
         player_letter = 'X'
     else:
         player_letter = random.choice(['X', 'O'])
+
+    win, winner_letter = check_win(board)
+    if win:
+        return None, winner_letter, True
 
     best_move = (-1, -1)
     best_val = float('-inf') if player_letter == 'X' else float('inf')
@@ -121,10 +125,12 @@ def find_best_move(board):
                 if player_letter == 'O' and move_val < best_val:
                     best_move = (i, j)
                     best_val = move_val
-    win, winner_letter = check_win(board)
-    if win:
-        return None, winner_letter
-    return best_move, player_letter
+
+    board[best_move[0]][best_move[1]] = player_letter
+    win, _ = check_win(board)
+    board[best_move[0]][best_move[1]] = ' '
+
+    return best_move, player_letter, win
 
 
 def check_win(board):
