@@ -79,7 +79,7 @@ def image_to_tictactoe_grid(image):
     Returns:
         list: 3x3 grid representing the Tic-Tac-Toe board state.
     """
-    results = MODEL("/home/mrcyme/Documents/FARI/repositories/demo-fari-tic-tac-toe-backend/tests/images/test_image.png", stream=False)
+    results = MODEL(image, stream=False)
     for r in results:
         bboxes = preprocess_bboxes(r.boxes, CLASS_NAMES)
     return bb_to_tictactoe_grid(bboxes)
