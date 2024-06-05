@@ -9,8 +9,8 @@ from pydrake.solvers import MathematicalProgram, Solve
 import swift
 from robotsAPI import Lite6API
 import json
-from typing import Union
-ArrayLike = Union[list, np.ndarray, tuple, set]
+from vision import image_to_tictactoe_grid
+from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 25
 
@@ -49,9 +49,9 @@ class OXOPlayer:
         self.control_loop_rate = control_loop_rate
         self.dt = 1/control_loop_rate
         self.traj = []
-        
-        self.current_grid_size = None
-        self.current_grid_center = None
+        self.grid = None
+        self.grid_size = None
+        self.grid_center = None
 
         
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=1): 
@@ -89,8 +89,8 @@ class OXOPlayer:
     
     def draw_grid(self, grid_center, grid_size, q_rest=None, lift_height=0.01, qd_max=1):
         grid_center = self.drawing_board_origin*grid_center
-        self.current_grid_size = grid_size
-        self.current_grid_center = grid_center
+        self.grid_size = grid_size
+        self.grid_center = grid_center
         
         for i in [-1, 1]:
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=qd_max)
@@ -130,13 +130,13 @@ class OXOPlayer:
             self.move_to(q_rest)
 
     def get_cell_center(self, cell_index):
-        cell_size = self.current_grid_size / 3
+        cell_size = self.grid_size / 3
         # Calculate the offset from the top-left corner of the grid to the center
-        half_grid_size = self.current_grid_size / 2
+        half_grid_size = self.grid_size / 2
         row, col = cell_index
         x = -half_grid_size + (col + 0.5) * cell_size
         y = -half_grid_size + (row + 0.5) * cell_size
-        return self.current_grid_center*sm.SE3(x,y,0), cell_size
+        return self.grid_center*sm.SE3(x,y,0), cell_size
 
 
     def save_traj(self, path):
