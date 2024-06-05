@@ -50,6 +50,7 @@ class OXOPlayer:
         self.dt = 1/control_loop_rate
         self.traj = []
         self.grid = None
+        self.previous_grid_state = None
         self.grid_size = None
         self.grid_center = None
 
@@ -129,7 +130,40 @@ class OXOPlayer:
             #probably better to implement qrest
             self.move_to(q_rest)
 
-    def get_cell_center(self, cell_index):
+    def play(self, image):
+        """
+        Play a move in the Tic-Tac-Toe game.
+
+        Args:
+            image (np.ndarray): Image data.
+
+        Returns:
+            dict: Response containing the grid state, move, game status, and winner.
+        """
+        # Get the current state of the grid
+        grid_state = image_to_tictactoe_grid(image)
+
+        # Check if the board has changed
+        if self.previous_grid_state is not None and np.array_equal(grid_state, self.previous_grid_state):
+            return {"error": "Please play first, the board has not changed"}
+
+        # Find the best move
+        best_move, player_letter, win = find_best_move(grid_state)
+
+        if best_move is None or win:
+            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
+
+        cell_center, size = self.get_cell_center(best_move)
+
+        if player_letter == 'X':
+            self.draw_x(cell_center, size / 2, q_rest=q_rest)
+        else:
+            self.draw_o(cell_center, size / 2, q_rest=q_rest)
+
+        # Update the previous grid state
+        self.previous_grid_state = grid_state
+
+        return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
         cell_size = self.grid_size / 3
         # Calculate the offset from the top-left corner of the grid to the center
         half_grid_size = self.grid_size / 2

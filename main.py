@@ -97,24 +97,13 @@ def play():
         
         image = np.frombuffer(image_bytes, dtype=np.uint8)
 
-        # Get the current state of the grid
-        grid_state = image_to_tictactoe_grid(image)
+        # Use the play method of OXOPlayer
+        response = oxoplayer.play(image)
 
-        # Find the best move
-        best_move, player_letter, win = find_best_move(grid_state)
+        if "error" in response:
+            return jsonify({"message": response["error"]}), 400
 
-        if best_move is None or win:
-            return jsonify({"grid_state": grid_state, "move" : f"letter : {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}), 200
-        
-        cell_center, size = oxoplayer.get_cell_center(best_move)
-        
-
-        if player_letter == 'X':
-            oxoplayer.draw_x(cell_center, size/2, q_rest=q_rest)
-        else:
-            oxoplayer.draw_o(cell_center, size/2, q_rest=q_rest)
-
-        return jsonify({"grid_state": grid_state, "move" : f"letter : {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}), 200
+        return jsonify(response), 200
 
     except Exception as e:
         raise e
