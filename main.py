@@ -98,7 +98,7 @@ def play():
         image = np.frombuffer(image_bytes, dtype=np.uint8)
 
         # Use the play method of OXOPlayer
-        response = oxoplayer.play(image)
+        response = oxoplayer.play(image, q_rest)
 
         if "error" in response:
             return jsonify({"message": response["error"]}), 400

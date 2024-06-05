@@ -130,7 +130,7 @@ class OXOPlayer:
             #probably better to implement qrest
             self.move_to(q_rest)
 
-    def play(self, image):
+    def play(self, image, q_rest):
         """
         Play a move in the Tic-Tac-Toe game.
 
@@ -164,6 +164,11 @@ class OXOPlayer:
         self.previous_grid_state = grid_state
 
         return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
+        self.previous_grid_state = grid_state
+
+        return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
+
+    def get_cell_center(self, cell_index):
         cell_size = self.grid_size / 3
         # Calculate the offset from the top-left corner of the grid to the center
         half_grid_size = self.grid_size / 2
