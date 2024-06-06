@@ -11,7 +11,7 @@ class TestPlayEndpoint(unittest.TestCase):
         self.app = app.test_client()
         self.app.testing = True
         
-    def full_play_player_start(self):
+    def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
         "center": [0.1, 0.3],

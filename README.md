@@ -15,14 +15,16 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     ```sh
     conda create -n tictactoe 
     conda activate tictactoe
+    conda install pip
+    conda install -c conda-forge libstdcxx-ng=12
     ```
+3. Install libraries
+    ```sh
     pip install git+https://github.com/mrcyme/robotics-toolbox-python.git
     pip install -r requirements.txt
     ```
-    if you run into an error with libstdcxx please run
-    ```sh
-    conda install -c conda-forge libstdcxx-ng=12
-    ```
+    If you want to run the code in real robot mode : 
+    
 
 ## Usage
 

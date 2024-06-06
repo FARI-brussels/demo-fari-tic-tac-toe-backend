@@ -1,6 +1,7 @@
 ultralytics,
-roboflow ,
+roboflow,
 drake, 
 Flask,
-PIL,
+xArm-Python-SDK
+
 

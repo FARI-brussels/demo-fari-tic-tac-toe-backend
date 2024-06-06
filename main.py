@@ -12,6 +12,7 @@ import swift
 import roboticstoolbox as rtb
 import cv2
 import os
+from robotsAPI import Lite6API
 app = Flask(__name__)
 
 
@@ -35,7 +36,7 @@ if "SIMULATION" in MODES:
     ROBOT.base *=  sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7)
 
 if "REAL" in MODES:
-    api=api
+    api=Lite6API(ip="192.168.1.159")
 
 
 q_rest = [100, -9, 50, -170 ,-40,- 190]

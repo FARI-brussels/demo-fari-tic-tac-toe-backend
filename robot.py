@@ -7,7 +7,6 @@ import spatialgeometry as sg
 from pydrake.solvers import MathematicalProgram, Solve
 # conda install -c conda-forge libstdcxx-ng=12
 import swift
-from robotsAPI import Lite6API
 import json
 from vision import image_to_tictactoe_grid
 from tictactoe_engine import find_best_move
