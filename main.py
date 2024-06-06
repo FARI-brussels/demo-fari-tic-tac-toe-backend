@@ -11,7 +11,7 @@ import io
 import swift
 import roboticstoolbox as rtb
 import cv2
-
+import os
 app = Flask(__name__)
 
 
@@ -21,7 +21,7 @@ ROBOT = rtb.models.URDF.Lite6()
 api = None
 simulation = None
 table = sg.Mesh(
-        filename=str("/home/mrcyme/Documents/FARI/repositories/demo-fari-robotic-arm/robotic_arm/stand.dae"),
+        filename=str(os.path.abspath("assets/stand.dae")),
         scale=(1.0,) * 3,
         color=[240, 103, 103],
     )

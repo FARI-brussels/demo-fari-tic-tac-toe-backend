@@ -1,5 +1,6 @@
-roboticstoolbox-python,
 ultralytics,
 roboflow ,
 drake, 
-Flask
+Flask,
+PIL,
+

@@ -11,10 +11,12 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     ```
 
 //TODO
-1. Create a conda enviroment 
+2. Create a conda enviroment 
     ```sh
     conda create -n tictactoe 
     conda activate tictactoe
+    ```
+    pip install git+https://github.com/mrcyme/robotics-toolbox-python.git
     pip install -r requirements.txt
     ```
     if you run into an error with libstdcxx please run
