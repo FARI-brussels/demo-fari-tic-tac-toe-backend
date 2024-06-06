@@ -149,6 +149,12 @@ Response:
 - `find_best_move(board)`: Finds the best move for the current board state.
 - `check_win(board)`: Checks if there is a win on the board.
 
+## Tests
+RUn the tests : 
+```sh
+python -m unittest discover -s tests
+```
+
 ## License
 
 This project is licensed under the MIT License.

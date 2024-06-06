@@ -32,7 +32,7 @@ def jacobian_i_k_optimisation(robot, v, qd_max=1):
 
 
 class OXOPlayer:
-    def __init__(self, robot, drawing_board_origin, control_loop_rate=30, api=None, simulation=None, scene=None, record=False):
+    def __init__(self, robot, drawing_board_origin, q_rest=None, control_loop_rate=30, api=None, simulation=None, scene=None, record=False):
         self.robot = robot
         self.api = api
         self.drawing_board_origin = drawing_board_origin
@@ -49,10 +49,10 @@ class OXOPlayer:
         self.control_loop_rate = control_loop_rate
         self.dt = 1/control_loop_rate
         self.traj = []
-        self.grid = None
         self.previous_grid_state = None
         self.grid_size = None
         self.grid_center = None
+        self.q_rest = q_rest
 
         
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=1): 
@@ -88,7 +88,7 @@ class OXOPlayer:
             self.traj.append(self.robot._fk_dict())
             
     
-    def draw_grid(self, grid_center, grid_size, q_rest=None, lift_height=0.01, qd_max=1):
+    def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1):
         grid_center = self.drawing_board_origin*grid_center
         self.grid_size = grid_size
         self.grid_center = grid_center
@@ -102,11 +102,11 @@ class OXOPlayer:
             self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height),  qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0),  qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0),  qd_max=qd_max)
-        if q_rest.any():
+        if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(q_rest)
+            self.move_to(self.q_rest)
 
-    def draw_x(self, center: sm.SE3, length, q_rest=None, lift_height=0.01, qd_max=1):
+    def draw_x(self, center: sm.SE3, length, lift_height=0.01, qd_max=1):
         half_length = length / 2
         self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=qd_max)
         self.move_to(center * sm.SE3(-half_length, -half_length, 0), qd_max=qd_max)
@@ -116,21 +116,20 @@ class OXOPlayer:
         self.move_to(center * sm.SE3(-half_length, half_length, -lift_height), qd_max=qd_max)
         self.move_to(center * sm.SE3(-half_length, half_length, 0), qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, -half_length, 0), qd_max=qd_max)
-        if q_rest.any():
+        if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(q_rest)
+            self.move_to(self.q_rest)
 
-    def draw_o(self, center: sm.SE3, radius, q_rest=None, lift_height=0.01):
+    def draw_o(self, center: sm.SE3, radius, lift_height=0.01):
         for i in range(50):
             theta = 2 * np.pi * i / 50
             T = center * sm.SE3(radius * np.cos(theta), radius * np.sin(theta), 0)
             self.move_to(T, gain=10) 
-            print("lentraj", len(self.traj))
-        if q_rest.any():
+        if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(q_rest)
+            self.move_to(self.q_rest)
 
-    def play(self, image, q_rest):
+    def play(self, image):
         """
         Play a move in the Tic-Tac-Toe game.
 
@@ -142,31 +141,27 @@ class OXOPlayer:
         """
         # Get the current state of the grid
         grid_state = image_to_tictactoe_grid(image)
-
         # Check if the board has changed
         if self.previous_grid_state is not None and np.array_equal(grid_state, self.previous_grid_state):
             return {"error": "Please play first, the board has not changed"}
 
         # Find the best move
         best_move, player_letter, win = find_best_move(grid_state)
-
         if best_move is None or win:
             return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
 
         cell_center, size = self.get_cell_center(best_move)
 
         if player_letter == 'X':
-            self.draw_x(cell_center, size / 2, q_rest=q_rest)
+            self.draw_x(cell_center, size / 2)
         else:
-            self.draw_o(cell_center, size / 2, q_rest=q_rest)
+            self.draw_o(cell_center, size / 2)
 
         # Update the previous grid state
         self.previous_grid_state = grid_state
 
         return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
-        self.previous_grid_state = grid_state
-
-        return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
+       
 
     def get_cell_center(self, cell_index):
         cell_size = self.grid_size / 3

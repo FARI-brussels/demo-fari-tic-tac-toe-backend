@@ -102,7 +102,7 @@ def find_best_move(board):
     elif x_count < o_count:
         player_letter = 'X'
     else:
-        player_letter = random.choice(['X', 'O'])
+        player_letter = 'O'
 
     win, winner_letter = check_win(board)
     if win:

@@ -6,8 +6,11 @@ from tictactoe_engine import find_best_move
 from robot import OXOPlayer
 import spatialmath as sm
 import spatialgeometry as sg
+from PIL import Image
+import io
 import swift
 import roboticstoolbox as rtb
+import cv2
 
 app = Flask(__name__)
 
@@ -38,7 +41,7 @@ if "REAL" in MODES:
 q_rest = [100, -9, 50, -170 ,-40,- 190]
 q_rest = np.radians(q_rest)
 ROBOT.q = q_rest
-oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, api=api, simulation=simulation, scene=scene, record=False)
+oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
 
 
 @app.route('/draw_grid', methods=['POST'])
@@ -64,7 +67,7 @@ def draw_grid():
         center_position = sm.SE3(center[0], center[1], 0)  # Convert to SE3
         size_value = size[0]  # Assuming size is a single value for simplicity
 
-        oxoplayer.draw_grid(center_position, size_value, q_rest=q_rest)
+        oxoplayer.draw_grid(center_position, size_value)
         return jsonify({"message": "Grid generated successfully"}), 200
 
     except Exception as e:
@@ -94,11 +97,15 @@ def play():
             image_bytes = base64.b64decode(image_data.split(",")[1])
         except IndexError:
             return jsonify({"error": "Invalid image data format"}), 400
-        
-        image = np.frombuffer(image_bytes, dtype=np.uint8)
+
+        # Convert the decoded bytes to a PIL Image
+        image = Image.open(io.BytesIO(image_bytes))
+        # Convert the PIL Image to a numpy array
+        image = np.array(image)
+        image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
 
         # Use the play method of OXOPlayer
-        response = oxoplayer.play(image, q_rest)
+        response = oxoplayer.play(image)
 
         if "error" in response:
             return jsonify({"message": response["error"]}), 400
