@@ -13,11 +13,11 @@ class TestPlayEndpoint(unittest.TestCase):
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
         
-    def full_play_player_start(self):
+    def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.1, 0.3],
-        "size": [0.050, 0.070]
+        "center": [0.2, 0.1],
+        "size": [0.10, 0.10]
         }
 
         # Send the POST request to the draw_grid endpoint
@@ -112,8 +112,8 @@ class TestPlayEndpoint(unittest.TestCase):
     def test_full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.1, 0.3],
-        "size": [0.050, 0.070]
+        "center": [0.2, 0.1],
+        "size": [0.10, 0.10]
         }
 
         # Send the POST request to the draw_grid endpoint

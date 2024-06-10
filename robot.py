@@ -120,10 +120,12 @@ class OXOPlayer:
             self.move_to(self.q_rest)
 
     def draw_o(self, center: sm.SE3, radius, lift_height=0.01):
+        self.move_to(center * sm.SE3(radius , 0, -lift_height))
         for i in range(50):
             theta = 2 * np.pi * i / 50
             T = center * sm.SE3(radius * np.cos(theta), radius * np.sin(theta), 0)
             self.move_to(T, gain=10) 
+        self.move_to(center * sm.SE3(0, radius, -lift_height))
         if self.q_rest.any():
             #probably better to implement qrest
             self.move_to(self.q_rest)
@@ -146,20 +148,22 @@ class OXOPlayer:
 
         # Find the best move
         best_move, player_letter, win = find_best_move(grid_state)
-        if best_move is None or win:
-            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
 
         cell_center, size = self.get_cell_center(best_move)
+        if best_move:
+            if player_letter == 'X':
+                self.draw_x(cell_center, size / 2)
+            else:
+                self.draw_o(cell_center, size / 2)
 
-        if player_letter == 'X':
-            self.draw_x(cell_center, size / 2)
-        else:
-            self.draw_o(cell_center, size / 2)
+  
 
         # Update the previous grid state
         self.previous_grid_state = grid_state
-
-        return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
+        if win:
+            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
+        else:
+            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
        
 
     def get_cell_center(self, cell_index):
