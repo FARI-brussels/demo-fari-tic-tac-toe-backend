@@ -154,7 +154,7 @@ class OXOPlayer:
             if player_letter == 'X':
                 self.draw_x(cell_center, size / 2)
             else:
-                self.draw_o(cell_center, size / 2)
+                self.draw_o(cell_center, size / 4)
 
   
 
