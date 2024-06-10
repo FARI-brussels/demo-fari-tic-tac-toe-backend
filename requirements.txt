@@ -1,7 +1,7 @@
-ultralytics,
-roboflow,
-drake, 
-Flask,
+ultralytics
+roboflow
+drake
+Flask
 xArm-Python-SDK
 
 
