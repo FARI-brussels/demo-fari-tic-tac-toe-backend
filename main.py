@@ -1,3 +1,5 @@
+# main.py
+
 import argparse
 from flask import Flask, request, jsonify
 import base64
@@ -17,47 +19,44 @@ from robotsAPI import Lite6API
 
 app = Flask(__name__)
 
-# Argument parser
-parser = argparse.ArgumentParser(description="Run the Tic-Tac-Toe Flask app.")
-parser.add_argument('--modes', type=str, nargs='+', required=True, choices=["SIMULATION", "REAL"], help="Modes to run the application in.")
-parser.add_argument('--robot_ip', type=str, help="IP address of the robot for REAL mode.")
-args = parser.parse_args()
+def initialize_app(modes, robot_ip=None):
+    global ROBOT, api, simulation, scene, oxoplayer
 
-# Validate modes
-MODES = args.modes
-if not MODES:
-    raise ValueError("At least one mode must be specified: SIMULATION or REAL.")
+    # Validate modes
+    MODES = modes
+    if not MODES:
+        raise ValueError("At least one mode must be specified: SIMULATION or REAL.")
 
-ROBOT = rtb.models.URDF.Lite6()
-ROBOT_IP = args.robot_ip if args.robot_ip else "192.168.1.159"
+    ROBOT = rtb.models.URDF.Lite6()
+    ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
 
-api = None
-simulation = None
-scene = []
+    api = None
+    simulation = None
+    scene = []
 
-table = sg.Mesh(
-    filename=str(os.path.abspath("assets/stand.dae")),
-    scale=(1.0,) * 3,
-    color=[240, 103, 103],
-)
-table.T = table.T * sm.SE3.Tz(0.7)
-screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.098) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
+    table = sg.Mesh(
+        filename=str(os.path.abspath("assets/stand.dae")),
+        scale=(1.0,) * 3,
+        color=[240, 103, 103],
+    )
+    table.T = table.T * sm.SE3.Tz(0.7)
+    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.098) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
 
-if "SIMULATION" in MODES:
-    simulation = swift.Swift()
-    scene.append(table)
-    ROBOT.base *= sm.SE3.Rz(90, 'deg') * sm.SE3.Tz(0.7)
+    if "SIMULATION" in MODES:
+        simulation = swift.Swift()
+        scene.append(table)
+        ROBOT.base *= sm.SE3.Rz(90, 'deg') * sm.SE3.Tz(0.7)
 
-if "REAL" in MODES:
-    if not ROBOT_IP:
-        raise ValueError("Robot IP must be provided for REAL mode.")
-    api = Lite6API(ip=ROBOT_IP)
+    if "REAL" in MODES:
+        if not ROBOT_IP:
+            raise ValueError("Robot IP must be provided for REAL mode.")
+        api = Lite6API(ip=ROBOT_IP)
 
-q_rest = [100, -9, 50, -170, -40, -190]
-q_rest = np.radians(q_rest)
-ROBOT.q = q_rest
-oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
-
+    q_rest = [100, -9, 50, -170, -40, -190]
+    q_rest = np.radians(q_rest)
+    ROBOT.q = q_rest
+    oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
+    return app
 
 @app.route('/draw_grid', methods=['POST'])
 def draw_grid():
@@ -88,7 +87,6 @@ def draw_grid():
     except Exception as e:
         raise e
         return jsonify({"message": str(e)}), 500
-
 
 @app.route('/play', methods=['POST'])
 def play():
@@ -132,6 +130,10 @@ def play():
         raise e
         return jsonify({"message": str(e)}), 500
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    parser = argparse.ArgumentParser(description="Run the Tic-Tac-Toe Flask app.")
+    parser.add_argument('--modes', type=str, nargs='+', required=True, choices=["SIMULATION", "REAL"], help="Modes to run the application in.")
+    parser.add_argument('--robot_ip', type=str, help="IP address of the robot for REAL mode.")
+    args = parser.parse_args()
+
+    initialize_app(args.modes, args.robot_ip).run(debug=True)
