@@ -7,10 +7,8 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
 1. Clone the repository:
     ```sh
     git clone <repository_url>
-    cd <repository_directory>
     ```
 
-//TODO
 2. Create a conda enviroment 
     ```sh
     conda create -n tictactoe 
@@ -20,11 +18,17 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     ```
 3. Install libraries
     ```sh
-    pip install git+https://github.com/mrcyme/robotics-toolbox-python.git
     pip install -r requirements.txt
     ```
-    If you want to run the code in real robot mode : 
-    
+
+4. 2. Clone the robotic-toolbox repo and install
+    ```sh
+    git clone git@github.com:mrcyme/robotics-toolbox-python.git
+    cd robotics-toolbox-python
+    pip install -e .
+    cd rtb-data
+    pip install -e .
+    ```
 
 ## Usage
 
