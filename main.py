@@ -40,7 +40,7 @@ def initialize_app(modes, robot_ip=None):
         color=[240, 103, 103],
     )
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
-    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.098) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
+    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.099) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
 
     if "SIMULATION" in MODES:
         simulation = swift.Swift()

@@ -171,8 +171,8 @@ class OXOPlayer:
         # Calculate the offset from the top-left corner of the grid to the center
         half_grid_size = self.grid_size / 2
         row, col = cell_index
-        x = -half_grid_size + (col + 0.5) * cell_size
-        y = -half_grid_size + (row + 0.5) * cell_size
+        y = -half_grid_size + (col + 0.5) * cell_size
+        x = half_grid_size - (row + 0.5) * cell_size
         return self.grid_center*sm.SE3(x,y,0), cell_size
 
 
