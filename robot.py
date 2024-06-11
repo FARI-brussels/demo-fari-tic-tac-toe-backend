@@ -81,6 +81,8 @@ class OXOPlayer:
                 self.api.set_joint_positions(value, is_radian=True)
             if not self.simulation:
                 time.sleep(self.dt)
+            else:
+                self.simulation.step(self.dt)
         else: 
             self.simulation.step(self.dt)
         if self.record:

@@ -29,6 +29,7 @@ def initialize_app(modes, robot_ip=None):
 
     ROBOT = rtb.models.URDF.Lite6()
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
+    ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
 
     api = None
     simulation = None
@@ -40,12 +41,11 @@ def initialize_app(modes, robot_ip=None):
         color=[240, 103, 103],
     )
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
-    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.099) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
+    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
 
     if "SIMULATION" in MODES:
         simulation = swift.Swift()
         scene.append(table)
-        ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
 
     if "REAL" in MODES:
         if not ROBOT_IP:
