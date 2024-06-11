@@ -44,16 +44,19 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     Example : 
 
         1. Simulation Mode only:
+
         ```sh
         python main.py --modes SIMULATION
         ```
 
         2. Real mode only : 
+
         ```sh
         python main.py --modes REAL --robot_ip ip
         ```
-        
+
         3. Both Simulation and Real Modes:
+        
         ```sh
         python main.py --modes SIMULATION REAL --robot_ip 192.168.1.159
         ```
