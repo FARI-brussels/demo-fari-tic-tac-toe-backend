@@ -37,18 +37,22 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     python main.py --modes Modes --robot_ip ip
     ```
     Command-Line Arguments : 
+
         --modes: Modes to run the application in. Accepts one or both of SIMULATION and REAL. This argument is required.
         --robot_ip: IP address of the robot for REAL mode. This argument is required if REAL mode is specified.
 
     Example : 
+
         1. Simulation Mode only:
         ```sh
         python main.py --modes SIMULATION
         ```
+
         2. Real mode only : 
         ```sh
         python main.py --modes REAL --robot_ip ip
         ```
+        
         3. Both Simulation and Real Modes:
         ```sh
         python main.py --modes SIMULATION REAL --robot_ip 192.168.1.159
