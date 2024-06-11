@@ -79,10 +79,10 @@ class OXOPlayer:
                 self.api.set_joint_velocities(value, is_radian=True)
             elif control_variable == "q":
                 self.api.set_joint_positions(value, is_radian=True)
-            if self.simulation:
-                self.simulation.step(self.dt)
+            if not self.simulation:
+                time.sleep(self.dt)
             else:
-                time.sleep(self.dt)           
+                self.simulation.step(self.dt)
         else: 
             self.simulation.step(self.dt)
         if self.record:

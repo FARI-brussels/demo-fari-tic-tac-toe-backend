@@ -30,6 +30,7 @@ def initialize_app(modes, robot_ip=None):
     ROBOT = rtb.models.URDF.Lite6()
     ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
+    ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
 
     api = None
     simulation = None
