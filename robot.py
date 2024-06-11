@@ -11,7 +11,7 @@ import json
 from vision import image_to_tictactoe_grid
 from tictactoe_engine import find_best_move
 
-CONTROL_FREQUENCY = 25
+CONTROL_FREQUENCY = 10
 
 def jacobian_i_k_optimisation(robot, v, qd_max=1):
     # jacobian inverse kinematics with optimisation
@@ -31,7 +31,7 @@ def jacobian_i_k_optimisation(robot, v, qd_max=1):
 
 
 class OXOPlayer:
-    def __init__(self, robot, drawing_board_origin, q_rest=None, control_loop_rate=30, api=None, simulation=None, scene=None, record=False):
+    def __init__(self, robot, drawing_board_origin, q_rest=None, control_loop_rate=25, api=None, simulation=None, scene=None, record=False):
         self.robot = robot
         self.api = api
         self.drawing_board_origin = drawing_board_origin
@@ -54,7 +54,7 @@ class OXOPlayer:
         self.q_rest = q_rest
 
         
-    def move_to(self, dest, gain=2, treshold=0.001, qd_max=1): 
+    def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
         arrived = False
         while not arrived:
             if self.api:
@@ -79,8 +79,10 @@ class OXOPlayer:
                 self.api.set_joint_velocities(value, is_radian=True)
             elif control_variable == "q":
                 self.api.set_joint_positions(value, is_radian=True)
-            if not self.simulation:
-                time.sleep(self.dt)
+            if self.simulation:
+                self.simulation.step(self.dt)
+            else:
+                time.sleep(self.dt)           
         else: 
             self.simulation.step(self.dt)
         if self.record:
@@ -93,7 +95,7 @@ class OXOPlayer:
         self.grid_center = grid_center
         
         for i in [-1, 1]:
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=0.2)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, -lift_height), qd_max=qd_max)
@@ -103,11 +105,11 @@ class OXOPlayer:
             self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0),  qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest)
+            self.move_to(self.q_rest, qd_max=0.2)
 
     def draw_x(self, center: sm.SE3, length, lift_height=0.01, qd_max=1):
         half_length = length / 2
-        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=0.2)
         self.move_to(center * sm.SE3(-half_length, -half_length, 0), qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, half_length, 0), qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, half_length, -lift_height), qd_max=qd_max)
@@ -117,10 +119,10 @@ class OXOPlayer:
         self.move_to(center * sm.SE3(half_length, -half_length, 0), qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest)
+            self.move_to(self.q_rest, qd_max=0.2)
 
     def draw_o(self, center: sm.SE3, radius, lift_height=0.01):
-        self.move_to(center * sm.SE3(radius , 0, -lift_height))
+        self.move_to(center * sm.SE3(radius , 0, -lift_height), qd_max=0.2)
         for i in range(50):
             theta = 2 * np.pi * i / 50
             T = center * sm.SE3(radius * np.cos(theta), radius * np.sin(theta), 0)
@@ -128,7 +130,7 @@ class OXOPlayer:
         self.move_to(center * sm.SE3(0, radius, -lift_height))
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest)
+            self.move_to(self.q_rest, qd_max=0.2)
 
     def play(self, image):
         """

@@ -183,27 +183,27 @@ class Lite6API(RoboticArmAPI):
     def _error_warn_changed_callback(self, data):
         if data and data['error_code'] != 0:
             self.alive = False
-            self.pprint('err={}, quit'.format(data['error_code']))
+            self.print('err={}, quit'.format(data['error_code']))
             self._api.release_error_warn_changed_callback(self._error_warn_changed_callback)
 
     # Register state changed callback
     def _state_changed_callback(self, data):
         if data and data['state'] == 4:
             self.alive = False
-            self.pprint('state=4, quit')
+            self.print('state=4, quit')
             self._api.release_state_changed_callback(self._state_changed_callback)
 
     # Register count changed callback
     def _count_changed_callback(self, data):
         if self.is_alive:
-            self.pprint('counter val: {}'.format(data['count']))
+            self.print('counter val: {}'.format(data['count']))
 
     def _check_code(self, code, label):
         if not self.is_alive or code != 0:
             self.alive = False
             ret1 = self._api.get_state()
             ret2 = self._api.get_err_warn_code()
-            self.pprint('{}, code={}, connected={}, state={}, error={}, ret1={}. ret2={}'.format(label, code, self._api.connected, self._api.state, self._api.error_code, ret1, ret2))
+            self.print('{}, code={}, connected={}, state={}, error={}, ret1={}. ret2={}'.format(label, code, self._api.connected, self._api.state, self._api.error_code, ret1, ret2))
         return self.is_alive
 
     def get_joint_position(self, joint_id, is_radian=True):
@@ -241,7 +241,12 @@ class Lite6API(RoboticArmAPI):
             self._api.set_mode(4)
             time.sleep(1)
         if not self._api.state == 0:
+            print("yo")
+            print(self._api.state)
+            print(self._api.get_err_warn_code())
             self._api.set_state(0)
+        else:
+            print("ya")
         return self._api.vc_set_joint_velocity(qd, is_radian=is_radian)
 
     def get_joint_acceleration(self, joint_id):
