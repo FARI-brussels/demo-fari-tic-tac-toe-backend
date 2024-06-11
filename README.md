@@ -21,7 +21,7 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     pip install -r requirements.txt
     ```
 
-4. 2. Clone the robotic-toolbox repo and install
+4. Clone the robotic-toolbox repo and install
     ```sh
     git clone git@github.com:mrcyme/robotics-toolbox-python.git
     cd robotics-toolbox-python
