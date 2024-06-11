@@ -55,7 +55,7 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
 
         3. Both Simulation and Real Modes:
 
-        python main.py --modes SIMULATION REAL --robot_ip 192.168.1.159
+        python main.py --modes SIMULATION REAL --robot_ip ip
 
 
 2. Use the following API endpoints to interact with the backend:
