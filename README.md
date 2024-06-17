@@ -14,7 +14,6 @@ This project provides a backend for a robotic arm that plays Tic-Tac-Toe. The ba
     conda create -n tictactoe 
     conda activate tictactoe
     conda install pip
-    conda install -c conda-forge libstdcxx-ng=12
     ```
 3. Install libraries
     ```sh
