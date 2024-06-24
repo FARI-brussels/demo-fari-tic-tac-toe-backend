@@ -86,7 +86,6 @@ def draw_grid():
         return jsonify({"message": "Grid generated successfully"}), 200
 
     except Exception as e:
-        raise e
         return jsonify({"message": str(e)}), 500
 
 @app.route('/play', methods=['POST'])
@@ -128,7 +127,6 @@ def play():
         return jsonify(response), 200
 
     except Exception as e:
-        raise e
         return jsonify({"message": str(e)}), 500
 
 if __name__ == '__main__':
