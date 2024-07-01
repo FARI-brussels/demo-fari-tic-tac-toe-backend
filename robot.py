@@ -71,8 +71,24 @@ class OXOPlayer:
         
 
     
-    def calibrate_z_plane(self, grid_center, grid_size,  qd_approach, lift_height=0.01):
-        grid_center = self.drawing_board_origin*grid_center
+    def calibrate_z_plane(self, grid_center, grid_size, qd_approach, lift_height=0.01):
+        grid_center = self.drawing_board_origin * grid_center
+        points = [
+            (i, j)
+            for i in [-1, 0, 1]
+            for j in [-1, 0, 1]
+        ]
+        for (i, j) in points:
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
+            self.move_to(point, qd_max=qd_approach)
+            while True:
+                try:
+                    self.api.set_joint_velocities([0, 0, 0, 0, 0, 0], is_radian=True)
+                    point = point * sm.SE3(0, 0, -0.001)
+                    self.move_to(point, qd_max=qd_approach)
+                except Exception as e:
+                    print(f"Error encountered: {e}")
+                    break
         
 
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
