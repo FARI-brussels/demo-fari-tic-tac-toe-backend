@@ -168,43 +168,45 @@ class Lite6API(RoboticArmAPI):
         self._api.clean_error()
         self._api.motion_enable(True)
         self._api.set_mode(0)
-        self._api.set_state(0)
+        self._api.set_state(state=0)
         self._api.register_error_warn_changed_callback(self._error_warn_changed_callback)
         self._api.register_state_changed_callback(self._state_changed_callback)
         if hasattr(self._api, 'register_count_changed_callback'):
             self._api.register_count_changed_callback(self._count_changed_callback)
 
-
     def _reset(self):
         self._api.reset(wait=True)
+
 
 
     # Register error/warn changed callback
     def _error_warn_changed_callback(self, data):
         if data and data['error_code'] != 0:
             self.alive = False
-            self.print('err={}, quit'.format(data['error_code']))
+            print('err={}, quit'.format(data['error_code']))
             self._api.release_error_warn_changed_callback(self._error_warn_changed_callback)
 
     # Register state changed callback
     def _state_changed_callback(self, data):
         if data and data['state'] == 4:
             self.alive = False
-            self.print('state=4, quit')
+            print(self._api.get_state())
+            print('state=4, quit')
             self._api.release_state_changed_callback(self._state_changed_callback)
 
     # Register count changed callback
     def _count_changed_callback(self, data):
         if self.is_alive:
-            self.print('counter val: {}'.format(data['count']))
+            print('counter val: {}'.format(data['count']))
 
-    def _check_code(self, code, label):
-        if not self.is_alive or code != 0:
+    def _check_code(self):
+        if not self.is_alive:
             self.alive = False
             ret1 = self._api.get_state()
             ret2 = self._api.get_err_warn_code()
-            self.print('{}, code={}, connected={}, state={}, error={}, ret1={}. ret2={}'.format(label, code, self._api.connected, self._api.state, self._api.error_code, ret1, ret2))
-        return self.is_alive
+            print('{}, code={}, connected={}, state={}, error={}, ret1={}. ret2={}'.format(self._api.connected, self._api.state, self._api.error_code, ret1, ret2))
+        return self.is_alive()
+
 
     def get_joint_position(self, joint_id, is_radian=True):
         return self._api.get_servo_angle(is_radian=is_radian)[joint_id]
@@ -240,13 +242,14 @@ class Lite6API(RoboticArmAPI):
         if not self._api.mode == 4:
             self._api.set_mode(4)
             time.sleep(1)
-        if not self._api.state == 0:
-            print("yo")
-            print(self._api.state)
+        if self._api.state == 5 and self._api.get_err_warn_code()[1][0]==0:
+            print(self._check_code())
+            print(self._api.get_state())
             print(self._api.get_err_warn_code())
+            #print("code", self._api.get_err_warn_code())
             self._api.set_state(0)
         else:
-            print("ya")
+            pass
         return self._api.vc_set_joint_velocity(qd, is_radian=is_radian)
 
     def get_joint_acceleration(self, joint_id):

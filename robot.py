@@ -13,14 +13,22 @@ from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 10
 
-def jacobian_i_k_optimisation(robot, v, qd_max=1):
-    # jacobian inverse kinematics with optimisation
+def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1):
     J = robot.jacobe(robot.q)
+    J_trans = J[:3, :]  # Extract the translational part of the Jacobian
     prog = MathematicalProgram()
     qd_opt = prog.NewContinuousVariables(6, "v_opt")
+
     # Define the error term for the cost function
     error = J @ qd_opt - v
     prog.AddCost(error.dot(error))
+
+    # Calculate the potential field gradient
+    robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
+    _, gradient = potential_field(robot_position, z_boundary)
+    # Incorporate the potential field gradient into the cost function
+    prog.AddCost(0.000001*np.dot(gradient, J_trans @ qd_opt))
+
     # Add bounding box constraint for joint velocities
     lower_bounds = [-qd_max] * 6  # Lower bounds for each joint velocity
     upper_bounds = [qd_max] * 6   # Upper bounds for each joint velocity
@@ -30,20 +38,28 @@ def jacobian_i_k_optimisation(robot, v, qd_max=1):
     return result.is_success(), result.GetSolution(qd_opt)
 
 
+def potential_field(robot_position, z_limit, influence_distance=0.004):
+    potential = 0
+    gradient = np.zeros(3)
+
+    z = robot_position[2]
+    if z- influence_distance < z_limit :
+        print("yo")
+        # Calculate the potential for z approaching z_limit
+        potential += 0.5 * (1.0 / (z_limit - z) - 1.0 / influence_distance)**2
+        # Calculate the gradient of the potential
+        gradient[2] += (1.0 / (z_limit - z)**3) * (1.0 / (z_limit - z) - 1.0 / influence_distance)
+    return potential, gradient
+
 class OXOPlayer:
-    def __init__(self, robot, drawing_board_origin, q_rest=None, control_loop_rate=25, api=None, simulation=None, scene=None, record=False):
+    def __init__(self, robot, drawing_board_origin, q_rest=None, qd_max = 1, z_boundary = 0, control_loop_rate=25, api=None, simulation=None, scene=None, record=False):
         self.robot = robot
         self.api = api
         self.drawing_board_origin = drawing_board_origin
         self.simulation = simulation
         self.scene = scene
-        if self.simulation:
-            self.simulation.launch(realtime=True)
-            self.simulation.add(self.robot)
-            for ob in scene:
-                self.simulation.add(ob)
-        if self.api:
-            robot.q = self.api.get_joint_positions(is_radian=True)
+        self.q_rest = q_rest
+        self.qd_max = qd_max
         self.record = record
         self.control_loop_rate = control_loop_rate
         self.dt = 1/control_loop_rate
@@ -51,7 +67,17 @@ class OXOPlayer:
         self.previous_grid_state = None
         self.grid_size = None
         self.grid_center = None
-        self.q_rest = q_rest
+        self.z_boundary = z_boundary
+        if self.simulation:
+            self.simulation.launch(realtime=True)
+            self.simulation.add(self.robot)
+            for ob in scene:
+                self.simulation.add(ob)
+        if self.api:
+            self.move_to(self.q_rest, qd_max=0.2)
+            robot.q = self.api.get_joint_positions(is_radian=True)
+        
+        
 
         
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
@@ -64,7 +90,7 @@ class OXOPlayer:
                 q = self.robot.q
             if isinstance(dest, sm.SE3) or (isinstance(dest, np.ndarray) and dest.shape==(4,4)):
                 v, arrived = rtb.cp_servo(self.robot.fkine(q), dest, gain=gain, threshold=treshold)
-                qd = jacobian_i_k_optimisation(self.robot, v, qd_max=qd_max)[1]
+                qd = jacobian_i_k_optimisation(self.robot, v, z_boundary = self.z_boundary, qd_max=qd_max)[1]
             else:
                 qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=treshold)
             self.robot.qd = qd
@@ -95,37 +121,37 @@ class OXOPlayer:
         self.grid_center = grid_center
         
         for i in [-1, 1]:
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=0.2)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, -lift_height), qd_max=qd_max)
         for i in [-1, 1]: 
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
             self.move_to(self.q_rest, qd_max=0.2)
 
     def draw_x(self, center: sm.SE3, length, lift_height=0.01, qd_max=1):
         half_length = length / 2
-        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=0.2)
-        self.move_to(center * sm.SE3(-half_length, -half_length, 0), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, half_length, 0), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, half_length, -lift_height), qd_max=qd_max)
         
-        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height), qd_max=qd_max)
-        self.move_to(center * sm.SE3(-half_length, half_length, 0), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, -half_length, 0), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, -half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
             self.move_to(self.q_rest, qd_max=0.2)
 
-    def draw_o(self, center: sm.SE3, radius, lift_height=0.01):
-        self.move_to(center * sm.SE3(radius , 0, -lift_height), qd_max=0.2)
+    def draw_o(self, center: sm.SE3, radius, lift_height=0.01, qd_max=1):
+        self.move_to(center * sm.SE3(radius , 0, -lift_height), qd_max= qd_max)
         for i in range(50):
             theta = 2 * np.pi * i / 50
-            T = center * sm.SE3(radius * np.cos(theta), radius * np.sin(theta), 0)
+            T = center * sm.SE3(radius * np.cos(theta), radius * np.sin(theta), 0) #* sm.SE3.Rz(theta, unit='rad')
             self.move_to(T, gain=10) 
         self.move_to(center * sm.SE3(0, radius, -lift_height))
         if self.q_rest.any():

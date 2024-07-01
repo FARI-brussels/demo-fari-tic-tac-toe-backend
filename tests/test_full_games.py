@@ -16,7 +16,7 @@ class TestPlayEndpoint(unittest.TestCase):
     def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.2, 0.1],
+        "center": [0.3, 0.2],
         "size": [0.10, 0.10]
         }
 
@@ -112,7 +112,7 @@ class TestPlayEndpoint(unittest.TestCase):
     def test_full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.2, 0.1],
+        "center": [0.3, 0.1],
         "size": [0.10, 0.10]
         }
 
@@ -160,13 +160,13 @@ class TestPlayEndpoint(unittest.TestCase):
 
         # Send the POST request to the play endpoint for the first move
         response = self.app.post('/play', data=json.dumps(first_move), content_type='application/json')
-       
+       	print(response)
         # Check the response status code for the first move
         self.assertEqual(response.status_code, 200)
 
         # Check the response data for the first move
         response_data = json.loads(response.data)
-
+	
         self.assertEqual([[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']], response_data["grid_state"])
         self.assertEqual('letter: O in (0, 0)', response_data["move"])
         self.assertEqual(False, response_data["game_is_finished"])

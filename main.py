@@ -28,9 +28,8 @@ def initialize_app(modes, robot_ip=None):
         raise ValueError("At least one mode must be specified: SIMULATION or REAL.")
 
     ROBOT = rtb.models.URDF.Lite6()
-    ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
+    ROBOT.base *= sm.SE3.Rz(-90, 'deg') * sm.SE3.Tz(0.7)
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
-    ROBOT.base *= sm.SE3.Rz(180, 'deg') * sm.SE3.Tz(0.7)
 
     api = None
     simulation = None
@@ -41,22 +40,25 @@ def initialize_app(modes, robot_ip=None):
         scale=(1.0,) * 3,
         color=[240, 103, 103],
     )
+    
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
-    screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
-
+    #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
+    screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
+    axes = sg.Axes(length=0.1, pose=screen_origin)
+    
     if "SIMULATION" in MODES:
         simulation = swift.Swift()
         scene.append(table)
-        
+        scene.append(axes)
     if "REAL" in MODES:
         if not ROBOT_IP:
             raise ValueError("Robot IP must be provided for REAL mode.")
         api = Lite6API(ip=ROBOT_IP)
 
-    q_rest = [100, -9, 50, -170, -40, -190]
+    q_rest = [0, -42, 30, 0, 50, 0]
     q_rest = np.radians(q_rest)
     ROBOT.q = q_rest
-    oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
+    oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, z_boundary = screen_origin.t[2]-0.005, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
     return app
 
 @app.route('/draw_grid', methods=['POST'])
@@ -86,6 +88,7 @@ def draw_grid():
         return jsonify({"message": "Grid generated successfully"}), 200
 
     except Exception as e:
+        raise e
         return jsonify({"message": str(e)}), 500
 
 @app.route('/play', methods=['POST'])
