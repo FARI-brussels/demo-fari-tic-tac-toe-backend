@@ -132,6 +132,31 @@ def play():
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
+    
+
+@app.route('/calibrate', methods=['POST'])
+def calibrate():
+    try:
+        data = request.get_json()
+        center = data.get('center')
+        size = data.get('size')
+
+        if not center or not size:
+            return jsonify({"message": "Invalid input"}), 400
+
+        center_position = sm.SE3(center[0], center[1], 0)  # Convert to SE3
+        size_value = size[0]  # Assuming size is a single value for simplicity
+
+        oxoplayer.calibrate_z_plane(center_position, size_value)
+        return jsonify({"message": "Grid generated successfully"}), 200
+
+    except Exception as e:
+        raise e
+        return jsonify({"message": str(e)}), 500
+
+
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run the Tic-Tac-Toe Flask app.")

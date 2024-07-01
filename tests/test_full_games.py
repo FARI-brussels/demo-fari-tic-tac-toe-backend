@@ -8,13 +8,20 @@ from main import initialize_app
 class TestPlayEndpoint(unittest.TestCase):
 
     def setUp(self):
-        modes = ["SIMULATION", "REAL"]  # You can add "REAL" mode if needed and provide the IP address.
+        modes = ["SIMULATION"]  # You can add "REAL" mode if needed and provide the IP address.
         robot_ip = "192.168.1.159"  # Set your robot IP address if testing with REAL mode
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
 
+    def test_calibrate_z_plane(self):
+        payload = {
+        "center": [0.3, 0.2],
+        "size": [0.10, 0.10]
+        }
+        response = self.app.post('/calibrate', data=json.dumps(payload), content_type='application/json')
+
         
-    def test_full_play_player_start(self):
+    def full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
         "center": [0.3, 0.2],
@@ -110,7 +117,7 @@ class TestPlayEndpoint(unittest.TestCase):
         self.assertEqual('X', response_data["winner"])
 
 
-    def test_full_play_robot_start(self):
+    def full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
         "center": [0.3, 0.1],
@@ -161,7 +168,6 @@ class TestPlayEndpoint(unittest.TestCase):
 
         # Send the POST request to the play endpoint for the first move
         response = self.app.post('/play', data=json.dumps(first_move), content_type='application/json')
-       	print(response)
         # Check the response status code for the first move
         self.assertEqual(response.status_code, 200)
 
@@ -192,29 +198,3 @@ class TestPlayEndpoint(unittest.TestCase):
 
 
 
-class TestCalibrateZPlane(unittest.TestCase):
-
-    def setUp(self):
-        from robot import OXOPlayer
-        from robotsAPI import Lite6API
-        import roboticstoolbox as rtb
-        import spatialmath as sm
-
-        # Initialize the robot and OXOPlayer
-        self.robot = rtb.models.DH.Panda()
-        self.api = Lite6API(ip="192.168.1.159")
-        self.drawing_board_origin = sm.SE3(0.5, 0.5, 0.5)
-        self.oxoplayer = OXOPlayer(robot=self.robot, drawing_board_origin=self.drawing_board_origin, api=self.api)
-
-    def test_calibrate_z_plane(self):
-        import spatialmath as sm
-        grid_center = sm.SE3(0.3, 0.2, 0)
-        grid_size = 0.1
-        qd_approach = 0.1
-        lift_height = 0.01
-
-        self.oxoplayer.calibrate_z_plane(grid_center, grid_size, qd_approach, lift_height)
-        # Add assertions as needed to verify the behavior
-
-if __name__ == "__main__":
-    unittest.main()

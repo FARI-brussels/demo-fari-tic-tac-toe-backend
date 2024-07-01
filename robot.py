@@ -13,7 +13,7 @@ from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 10
 
-def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1):
+def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potential_field=False):
     J = robot.jacobe(robot.q)
     J_trans = J[:3, :]  # Extract the translational part of the Jacobian
     prog = MathematicalProgram()
@@ -22,12 +22,12 @@ def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1):
     # Define the error term for the cost function
     error = J @ qd_opt - v
     prog.AddCost(error.dot(error))
-
-    # Calculate the potential field gradient
-    robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
-    _, gradient = potential_field(robot_position, z_boundary)
-    # Incorporate the potential field gradient into the cost function
-    prog.AddCost(0.000001*np.dot(gradient, J_trans @ qd_opt))
+    if potential_field:
+        # Calculate the potential field gradient
+        robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
+        _, gradient = potential_field(robot_position, z_boundary)
+        # Incorporate the potential field gradient into the cost function
+        prog.AddCost(0.000001*np.dot(gradient, J_trans @ qd_opt))
 
     # Add bounding box constraint for joint velocities
     lower_bounds = [-qd_max] * 6  # Lower bounds for each joint velocity
@@ -51,6 +51,7 @@ def potential_field(robot_position, z_limit, influence_distance=0.004):
         gradient[2] += (1.0 / (z_limit - z)**3) * (1.0 / (z_limit - z) - 1.0 / influence_distance)
     return potential, gradient
 
+
 class OXOPlayer:
     def __init__(self, robot, drawing_board_origin, q_rest=None, qd_max = 1, z_boundary = 0, control_loop_rate=25, api=None, simulation=None, scene=None, record=False):
         self.robot = robot
@@ -68,10 +69,19 @@ class OXOPlayer:
         self.grid_size = None
         self.grid_center = None
         self.z_boundary = z_boundary
+        if self.api:
+            self.api.connect()
+            self.move_to(self.q_rest, qd_max=0.2)
+            self.robot.q = self.api.get_joint_positions(is_radian=True)
+        if self.simulation:
+            self.simulation.launch(realtime=True)
+            self.simulation.add(self.robot)
+            for ob in self.scene:
+                self.simulation.add(ob)
         
 
     
-    def calibrate_z_plane(self, grid_center, grid_size, qd_approach, lift_height=0.01):
+    def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
         grid_center = self.drawing_board_origin * grid_center
         points = [
             (i, j)
@@ -80,15 +90,10 @@ class OXOPlayer:
         ]
         for (i, j) in points:
             point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
-            self.move_to(point, qd_max=qd_approach)
-            while True:
-                try:
-                    self.api.set_joint_velocities([0, 0, 0, 0, 0, 0], is_radian=True)
-                    point = point * sm.SE3(0, 0, -0.001)
-                    self.move_to(point, qd_max=qd_approach)
-                except Exception as e:
-                    print(f"Error encountered: {e}")
-                    break
+            self.move_to(point, qd_max=self.qd_max)
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, lift_height)
+            print(self.move_to(point, qd_max=qd_approach))
+
         
 
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
