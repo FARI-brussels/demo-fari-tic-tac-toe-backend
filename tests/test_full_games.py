@@ -13,6 +13,14 @@ class TestPlayEndpoint(unittest.TestCase):
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
         
+    def test_calibrate_z_plane(self):
+        payload = {
+        "center": [0.3, 0.2],
+        "size": [0.10, 0.10]
+        }
+        response = self.app.post('/calibrate', data=json.dumps(payload), content_type='application/json')
+
+
     def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {

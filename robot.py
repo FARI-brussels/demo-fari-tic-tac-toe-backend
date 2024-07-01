@@ -13,7 +13,7 @@ from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 10
 
-def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1):
+def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potiential_field=False):
     J = robot.jacobe(robot.q)
     J_trans = J[:3, :]  # Extract the translational part of the Jacobian
     prog = MathematicalProgram()
@@ -22,12 +22,12 @@ def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1):
     # Define the error term for the cost function
     error = J @ qd_opt - v
     prog.AddCost(error.dot(error))
-
-    # Calculate the potential field gradient
-    robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
-    _, gradient = potential_field(robot_position, z_boundary)
-    # Incorporate the potential field gradient into the cost function
-    prog.AddCost(0.000001*np.dot(gradient, J_trans @ qd_opt))
+    if potiential_field:
+        # Calculate the potential field gradient
+        robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
+        _, gradient = potential_field(robot_position, z_boundary)
+        # Incorporate the potential field gradient into the cost function
+        prog.AddCost(0.000001*np.dot(gradient, J_trans @ qd_opt))
 
     # Add bounding box constraint for joint velocities
     lower_bounds = [-qd_max] * 6  # Lower bounds for each joint velocity
@@ -111,6 +111,19 @@ class OXOPlayer:
             self.simulation.step(self.dt)
         if self.record:
             self.traj.append(self.robot._fk_dict())
+
+    def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
+        grid_center = self.drawing_board_origin * grid_center
+        points = [
+            (i, j)
+            for i in [-1, 0, 1]
+            for j in [-1, 0, 1]
+        ]
+        for (i, j) in points:
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
+            self.move_to(point, qd_max=self.qd_max)
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, lift_height)
+            print(self.move_to(point, qd_max=qd_approach))
             
     
     def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1):
