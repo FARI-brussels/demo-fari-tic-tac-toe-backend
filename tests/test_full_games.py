@@ -12,6 +12,7 @@ class TestPlayEndpoint(unittest.TestCase):
         robot_ip = "192.168.1.159"  # Set your robot IP address if testing with REAL mode
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
+
         
     def test_full_play_player_start(self):
         # Create the payload for drawing the grid
