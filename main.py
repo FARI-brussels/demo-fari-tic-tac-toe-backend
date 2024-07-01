@@ -61,6 +61,7 @@ def initialize_app(modes, robot_ip=None):
     oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, z_boundary = screen_origin.t[2]-0.005, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
     return app
 
+
 @app.route('/draw_grid', methods=['POST'])
 def draw_grid():
     """

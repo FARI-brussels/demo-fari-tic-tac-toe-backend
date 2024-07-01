@@ -68,17 +68,24 @@ class OXOPlayer:
         self.grid_size = None
         self.grid_center = None
         self.z_boundary = z_boundary
+        
+
+    
+    def connect(self):
+        if self.api:
+            self.api.connect()
+            self.move_to(self.q_rest, qd_max=0.2)
+            self.robot.q = self.api.get_joint_positions(is_radian=True)
         if self.simulation:
             self.simulation.launch(realtime=True)
             self.simulation.add(self.robot)
-            for ob in scene:
+            for ob in self.scene:
                 self.simulation.add(ob)
-        if self.api:
-            self.move_to(self.q_rest, qd_max=0.2)
-            robot.q = self.api.get_joint_positions(is_radian=True)
-        
-        
 
+    def disconnect(self):
+        if self.api:
+            self.api.disconnect()    
+        
         
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
         arrived = False
