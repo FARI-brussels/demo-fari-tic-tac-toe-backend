@@ -248,8 +248,9 @@ class Lite6API(RoboticArmAPI):
             print(self._api.get_err_warn_code())
             #print("code", self._api.get_err_warn_code())
             self._api.set_state(0)
-        else:
-            raise Exception(f"Error in setting velocity at {self.get_joint_positions()}")
+        else: 
+            pass
+
         return self._api.vc_set_joint_velocity(qd, is_radian=is_radian)
 
     def get_joint_acceleration(self, joint_id):

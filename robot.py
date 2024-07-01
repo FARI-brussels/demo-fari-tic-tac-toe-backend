@@ -111,6 +111,10 @@ class OXOPlayer:
         if self.record:
             self.traj.append(self.robot._fk_dict())
 
+    def probe(self):
+        while True:
+            self.move_to(self.robot.fkine(self.robot.q)*sm.SE3.Tz(0.0001), qd_max=0.1)
+
     def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
         grid_center = self.drawing_board_origin * grid_center
         points = [
@@ -121,8 +125,9 @@ class OXOPlayer:
         for (i, j) in points:
             point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
             self.move_to(point, qd_max=self.qd_max)
-            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, lift_height)
-            print(self.move_to(point, qd_max=qd_approach))
+            self.probe()
+
+    
             
     
     def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1):
