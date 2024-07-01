@@ -71,22 +71,10 @@ class OXOPlayer:
         
 
     
-    def connect(self):
-        if self.api:
-            self.api.connect()
-            self.move_to(self.q_rest, qd_max=0.2)
-            self.robot.q = self.api.get_joint_positions(is_radian=True)
-        if self.simulation:
-            self.simulation.launch(realtime=True)
-            self.simulation.add(self.robot)
-            for ob in self.scene:
-                self.simulation.add(ob)
+    def calibrate_z_plane(self, grid_center, grid_size,  qd_approach, lift_height=0.01):
+        grid_center = self.drawing_board_origin*grid_center
+        
 
-    def disconnect(self):
-        if self.api:
-            self.api.disconnect()    
-        
-        
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
         arrived = False
         while not arrived:
