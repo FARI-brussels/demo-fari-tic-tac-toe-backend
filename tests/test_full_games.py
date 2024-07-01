@@ -192,5 +192,28 @@ class TestPlayEndpoint(unittest.TestCase):
 
 
 
+class TestCalibrateZPlane(unittest.TestCase):
+
+    def setUp(self):
+        from robot import OXOPlayer
+        from robotsAPI import Lite6API
+        import roboticstoolbox as rtb
+        import spatialmath as sm
+
+        # Initialize the robot and OXOPlayer
+        self.robot = rtb.models.DH.Panda()
+        self.api = Lite6API(ip="192.168.1.159")
+        self.drawing_board_origin = sm.SE3(0.5, 0.5, 0.5)
+        self.oxoplayer = OXOPlayer(robot=self.robot, drawing_board_origin=self.drawing_board_origin, api=self.api)
+
+    def test_calibrate_z_plane(self):
+        grid_center = sm.SE3(0.3, 0.2, 0)
+        grid_size = 0.1
+        qd_approach = 0.1
+        lift_height = 0.01
+
+        self.oxoplayer.calibrate_z_plane(grid_center, grid_size, qd_approach, lift_height)
+        # Add assertions as needed to verify the behavior
+
 if __name__ == "__main__":
     unittest.main()
