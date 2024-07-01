@@ -168,7 +168,6 @@ class TestPlayEndpoint(unittest.TestCase):
 
         # Send the POST request to the play endpoint for the first move
         response = self.app.post('/play', data=json.dumps(first_move), content_type='application/json')
-       	print(response)
         # Check the response status code for the first move
         self.assertEqual(response.status_code, 200)
 

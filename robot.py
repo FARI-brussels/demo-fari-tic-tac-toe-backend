@@ -77,9 +77,6 @@ class OXOPlayer:
             self.move_to(self.q_rest, qd_max=0.2)
             robot.q = self.api.get_joint_positions(is_radian=True)
         
-        
-
-        
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
         arrived = False
         while not arrived:
