@@ -207,6 +207,7 @@ class TestCalibrateZPlane(unittest.TestCase):
         self.oxoplayer = OXOPlayer(robot=self.robot, drawing_board_origin=self.drawing_board_origin, api=self.api)
 
     def test_calibrate_z_plane(self):
+        import spatialmath as sm
         grid_center = sm.SE3(0.3, 0.2, 0)
         grid_size = 0.1
         qd_approach = 0.1
