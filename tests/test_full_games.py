@@ -8,7 +8,7 @@ from main import initialize_app
 class TestPlayEndpoint(unittest.TestCase):
 
     def setUp(self):
-        modes = ["SIMULATION", "REAL"]  # You can add "REAL" mode if needed and provide the IP address.
+        modes = ["SIMULATION"]  # You can add "REAL" mode if needed and provide the IP address.
         robot_ip = "192.168.1.159"  # Set your robot IP address if testing with REAL mode
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True

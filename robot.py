@@ -44,7 +44,6 @@ def potential_field(robot_position, z_limit, influence_distance=0.004):
 
     z = robot_position[2]
     if z- influence_distance < z_limit :
-        print("yo")
         # Calculate the potential for z approaching z_limit
         potential += 0.5 * (1.0 / (z_limit - z) - 1.0 / influence_distance)**2
         # Calculate the gradient of the potential
@@ -76,9 +75,8 @@ class OXOPlayer:
         if self.api:
             self.move_to(self.q_rest, qd_max=0.2)
             robot.q = self.api.get_joint_positions(is_radian=True)
-        
-        
 
+        
         
     def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
         arrived = False

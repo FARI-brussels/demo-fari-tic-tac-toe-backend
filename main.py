@@ -17,6 +17,40 @@ import cv2
 import os
 from robotsAPI import Lite6API
 
+
+
+def joint_to_SE3(robot, origin_joints, x_joints, y_joints):
+    # Compute the Cartesian coordinates of the origin and the two points
+    origin = robot.fkine(np.radians(origin_joints)).t
+    x_point = robot.fkine(np.radians(x_joints)).t
+    y_point = robot.fkine(np.radians(y_joints)).t
+    
+    # Define basis vectors for the new frame
+    x_prime = x_point - origin
+    x_prime = x_prime / np.linalg.norm(x_prime)  # Normalize to unit vector
+    
+    # Vector in the plane but orthogonal to x_prime
+    temp_vec = y_point - origin
+    z_prime = np.cross(x_prime, temp_vec)
+    z_prime = z_prime / np.linalg.norm(z_prime)  # Normalize to unit vector
+    
+    # y_prime is orthogonal to both x_prime and z_prime
+    y_prime = np.cross(z_prime, x_prime)
+    y_prime = y_prime / np.linalg.norm(y_prime)  # Normalize to unit vector
+    
+    # Rotation matrix
+    R = np.column_stack((x_prime, y_prime, z_prime))
+    
+    # Translation vector
+    t = origin
+    
+    # Create SE(3) transformation matrix
+    T = np.eye(4)
+    T[:3, :3] = R
+    T[:3, 3] = t
+    
+    return sm.SE3(T)
+
 app = Flask(__name__)
 
 def initialize_app(modes, robot_ip=None):
@@ -43,9 +77,10 @@ def initialize_app(modes, robot_ip=None):
     
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
-    screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
+    screen_origin = joint_to_SE3(ROBOT, [32.1, 82.4, 165, -178.7, -72.7, -190.5], [-34.5, 62.2, 128.6, -175.1, -53, -29], [72.4, 28.3, 74.8, -187.8, -52.5, 98.5])
+    #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
-    
+    screen_corner_z_offset = [0, 0, 3.5, 3.5]
     if "SIMULATION" in MODES:
         simulation = swift.Swift()
         scene.append(table)
