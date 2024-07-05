@@ -78,7 +78,7 @@ class OXOPlayer:
 
         
         
-    def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
+    def move_to(self, dest, gain=2, treshold=0.0002, qd_max=0.5): 
         arrived = False
         while not arrived:
             if self.api:
@@ -127,7 +127,7 @@ class OXOPlayer:
             
     
     def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1.5):
-        self.api.clear_errors()
+        self.api._clear_errors()
         grid_center = self.drawing_board_origin*grid_center
         self.grid_size = grid_size
         self.grid_center = grid_center

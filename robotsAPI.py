@@ -178,7 +178,7 @@ class Lite6API(RoboticArmAPI):
         self._api.reset(wait=True)
 
 
-    def _clear_error(self):
+    def _clear_errors(self):
         self._api.set_state(0)
         
     # Register error/warn changed callback
