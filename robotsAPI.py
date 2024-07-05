@@ -178,7 +178,9 @@ class Lite6API(RoboticArmAPI):
         self._api.reset(wait=True)
 
 
-
+    def _clear_error(self):
+        self._api.set_state(0)
+        
     # Register error/warn changed callback
     def _error_warn_changed_callback(self, data):
         if data and data['error_code'] != 0:
@@ -243,10 +245,6 @@ class Lite6API(RoboticArmAPI):
             self._api.set_mode(4)
             time.sleep(1)
         if self._api.state == 5 and self._api.get_err_warn_code()[1][0]==0:
-            print(self._check_code())
-            print(self._api.get_state())
-            print(self._api.get_err_warn_code())
-            #print("code", self._api.get_err_warn_code())
             self._api.set_state(0)
         else:
             pass
