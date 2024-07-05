@@ -19,12 +19,8 @@ from robotsAPI import Lite6API
 
 
 
-def joint_to_SE3(robot, origin_joints, x_joints, y_joints):
+def joint_to_SE3(origin, x_point, y_point):
     # Compute the Cartesian coordinates of the origin and the two points
-    origin = robot.fkine(np.radians(origin_joints)).t
-    x_point = robot.fkine(np.radians(x_joints)).t
-    y_point = robot.fkine(np.radians(y_joints)).t
-    
     # Define basis vectors for the new frame
     x_prime = x_point - origin
     x_prime = x_prime / np.linalg.norm(x_prime)  # Normalize to unit vector
@@ -62,6 +58,13 @@ def initialize_app(modes, robot_ip=None):
         raise ValueError("At least one mode must be specified: SIMULATION or REAL.")
 
     ROBOT = rtb.models.URDF.Lite6()
+    origin = np.array([0.40603, 0.26181, 0.053635])
+    x_point = np.array([0.41053, -0.25917, 0.056265])
+    y_point = np.array([0.11686, 0.26958,0.051699])
+
+    print(type(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t))
+    print(ROBOT.fkine(np.radians([-34.5, 62.2, 128.6, -175.1, -53, -29])).t)
+    print(ROBOT.fkine(np.radians([72.4, 28.3, 74.8, -187.8, -52.5, 98.5])).t)
     ROBOT.base *= sm.SE3.Rz(-90, 'deg') * sm.SE3.Tz(0.7)
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
 
@@ -76,8 +79,12 @@ def initialize_app(modes, robot_ip=None):
     )
     
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
+    origin = np.array([0.26181, -0.40603, 0.75763])
+    x_point = np.array([-0.25917, -0.41053, 0.756026])
+    y_point = np.array([0.26958, -0.11686, 0.7547])
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
-    screen_origin = joint_to_SE3(ROBOT, [32.1, 82.4, 165, -178.7, -72.7, -190.5], [-34.5, 62.2, 128.6, -175.1, -53, -29], [72.4, 28.3, 74.8, -187.8, -52.5, 98.5])
+    screen_origin = joint_to_SE3(origin, x_point , y_point)
+    screen_origin = screen_origin * sm.SE3.Tz(-0.0038)
     #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
     screen_corner_z_offset = [0, 0, 3.5, 3.5]

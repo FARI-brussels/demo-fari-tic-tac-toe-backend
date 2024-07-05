@@ -126,7 +126,7 @@ class OXOPlayer:
             print(self.move_to(point, qd_max=qd_approach))
             
     
-    def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1):
+    def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1.5):
         grid_center = self.drawing_board_origin*grid_center
         self.grid_size = grid_size
         self.grid_center = grid_center

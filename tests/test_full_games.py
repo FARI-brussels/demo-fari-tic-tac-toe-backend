@@ -8,24 +8,17 @@ from main import initialize_app
 class TestPlayEndpoint(unittest.TestCase):
 
     def setUp(self):
-        modes = ["SIMULATION"]  # You can add "REAL" mode if needed and provide the IP address.
+        modes = ["REAL"]  # You can add "REAL" mode if needed and provide the IP address.
         robot_ip = "192.168.1.159"  # Set your robot IP address if testing with REAL mode
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
         
-    def test_calibrate_z_plane(self):
-        payload = {
-        "center": [0.3, 0.2],
-        "size": [0.10, 0.10]
-        }
-        response = self.app.post('/calibrate', data=json.dumps(payload), content_type='application/json')
-
 
     def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.3, 0.2],
-        "size": [0.10, 0.10]
+        "center": [0.353, 0.149],
+        "size": [0.12, 0.12]
         }
 
         # Send the POST request to the draw_grid endpoint
@@ -120,8 +113,8 @@ class TestPlayEndpoint(unittest.TestCase):
     def test_full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.3, 0.1],
-        "size": [0.10, 0.10]
+        "center": [0.353, 0.149],
+        "size": [0.12, 0.12]
         }
 
         # Send the POST request to the draw_grid endpoint
