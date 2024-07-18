@@ -234,12 +234,12 @@ class Lite6API(RoboticArmAPI):
         pass
 
     def get_joint_velocities(self):
-        pass
+        return self._api.get_joint_states()[1][1]
 
     def set_joint_velocity(self, joint_id, velocity):
         pass
 
-    def set_joint_velocities(self, qd, is_radian=True):
+    def set_joint_velocities(self, qd, is_radian=True, duration=-1):
         # Not optimal as this condition is checked on every call
         if not self._api.mode == 4:
             self._api.set_mode(4)
@@ -248,7 +248,7 @@ class Lite6API(RoboticArmAPI):
             self._api.set_state(0)
         else:
             pass
-        return self._api.vc_set_joint_velocity(qd, is_radian=is_radian)
+        return self._api.vc_set_joint_velocity(qd, is_radian=is_radian, duration=duration)
 
     def get_joint_acceleration(self, joint_id):
         pass
@@ -262,6 +262,9 @@ class Lite6API(RoboticArmAPI):
     def set_joint_accelerations(self, accelerations):
         pass
 
+    def get_joint_torque():
+        return self._api.get_joints_torque(self)
+    
     def reset_robot(self):
         pass
 

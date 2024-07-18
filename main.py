@@ -84,7 +84,7 @@ def initialize_app(modes, robot_ip=None):
     y_point = np.array([0.26958, -0.11686, 0.7540])
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
     screen_origin = joint_to_SE3(origin, x_point , y_point)
-    screen_origin = screen_origin * sm.SE3.Tz(-0.0015)
+    screen_origin = screen_origin * sm.SE3.Tz(-0.0007)
     #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
     screen_corner_z_offset = [0, 0, 3.5, 3.5]

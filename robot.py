@@ -78,7 +78,7 @@ class OXOPlayer:
 
         
         
-    def move_to(self, dest, gain=2, treshold=0.0002, qd_max=0.5): 
+    def move_to(self, dest, gain=2, treshold=0.001, qd_max=1): 
         arrived = False
         while not arrived:
             if self.api:
@@ -94,13 +94,13 @@ class OXOPlayer:
             self.robot.qd = qd
             self.step(qd, control_variable="qd")
         if self.api:
-            self.api.set_joint_velocities([0, 0, 0, 0, 0, 0], is_radian=True)
+            self.api.set_joint_velocities([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], is_radian=True, duration=self.dt)
         return arrived, self.robot.q
 
     def step(self, value, control_variable="qd"):
         if self.api:
             if control_variable == "qd":
-                self.api.set_joint_velocities(value, is_radian=True)
+                self.api.set_joint_velocities(value, is_radian=True, duration=self.dt)
             elif control_variable == "q":
                 self.api.set_joint_positions(value, is_radian=True)
             if not self.simulation:
@@ -211,8 +211,8 @@ class OXOPlayer:
         # Calculate the offset from the top-left corner of the grid to the center
         half_grid_size = self.grid_size / 2
         row, col = cell_index
-        y = -half_grid_size + (col + 0.5) * cell_size
-        x = half_grid_size - (row + 0.5) * cell_size
+        y = half_grid_size - (row + 0.5) * cell_size
+        x = half_grid_size - (col + 0.5) * cell_size
         return self.grid_center*sm.SE3(x,y,0), cell_size
 
 
