@@ -1,4 +1,3 @@
-
 import time
 import roboticstoolbox as rtb
 import numpy as np
@@ -187,10 +186,11 @@ class OXOPlayer:
             return {"error": "Please play first, the board has not changed"}
 
         # Find the best move
-        best_move, player_letter, win = find_best_move(grid_state)
+        best_move, player_letter, win, is_grid_complete = find_best_move(grid_state)
 
-        cell_center, size = self.get_cell_center(best_move)
+        
         if best_move:
+            cell_center, size = self.get_cell_center(best_move)
             if player_letter == 'X':
                 self.draw_x(cell_center, size / 2)
             else:
@@ -202,6 +202,8 @@ class OXOPlayer:
         self.previous_grid_state = grid_state
         if win:
             return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
+        elif is_grid_complete:
+            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": None}
         else:
             return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
        
@@ -220,6 +222,9 @@ class OXOPlayer:
         json.dump(self.traj, open(path, "w"))
 
     
+ 
+
+  
  
 
   

@@ -82,7 +82,6 @@ def minimax(board, depth, is_max, alpha, beta, player_letter):
 def find_best_move(board):
     x_count = sum(row.count('X') for row in board)
     o_count = sum(row.count('O') for row in board)
-    
     if x_count > o_count:
         player_letter = 'O'
     elif x_count < o_count:
@@ -90,9 +89,12 @@ def find_best_move(board):
     else:
         player_letter = 'O'
 
-    win, winner_letter = check_win(board)
+    win, winner_letter, is_grid_complete = check_win(board)
+    
     if win:
-        return None, winner_letter, True
+        return None, winner_letter, True, is_grid_complete
+    if is_grid_complete:
+        return None, None, False, is_grid_complete
 
     best_move = (-1, -1)
     best_val = float('-inf') if player_letter == 'X' else float('inf')
@@ -112,37 +114,49 @@ def find_best_move(board):
                        (player_letter == 'X' and is_winning_move(board, i, j, player_letter)):
                         best_move = (i, j)
     board[best_move[0]][best_move[1]] = player_letter
-    win, _ = check_win(board)
+    win, _ , is_grid_complete = check_win(board)
     board[best_move[0]][best_move[1]] = ' '
-    return best_move, player_letter, win
+    return best_move, player_letter, win, is_grid_complete
 
 def is_blocking_move(board, row, col, player_letter):
     opponent_letter = 'O' if player_letter == 'X' else 'X'
     board[row][col] = opponent_letter
-    win, _ = check_win(board)
+    win, _, __= check_win(board)
     board[row][col] = ' '
     return win
 
 def is_winning_move(board, row, col, player_letter):
     board[row][col] = player_letter
-    win, _ = check_win(board)
+    win, _, __ = check_win(board)
     board[row][col] = ' '
     return win
 
 def check_win(board):
+    x_count = sum(row.count('X') for row in board)
+    o_count = sum(row.count('O') for row in board)
+    is_grid_complete = False
+    if x_count + o_count == 9:
+        is_grid_complete = True
     for i in range(3):
         if board[i][0] == board[i][1] == board[i][2] and board[i][0] != ' ':
-            return True, board[i][0]
+            return True, board[i][0], is_grid_complete
         if board[0][i] == board[1][i] == board[2][i] and board[0][i] != ' ':
-            return True, board[0][i]
+            return True, board[0][i], is_grid_complete
 
     if board[0][0] == board[1][1] == board[2][2] and board[0][0] != ' ':
-        return True, board[0][0]
+        return True, board[0][0], is_grid_complete
 
     if board[0][2] == board[1][1] == board[2][0] and board[0][2] != ' ':
-        return True, board[0][2]
+        return True, board[0][2], is_grid_complete
+    return False, None, is_grid_complete
 
-    return False, None
+def check_draw(board):
+    x_count = sum(row.count('X') for row in board)
+    o_count = sum(row.count('O') for row in board)
+    if x_count + o_count == 9:
+        return True
+    else:
+        return False
     
 
 

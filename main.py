@@ -62,9 +62,6 @@ def initialize_app(modes, robot_ip=None):
     x_point = np.array([0.41053, -0.25917, 0.056265])
     y_point = np.array([0.11686, 0.26958,0.051699])
 
-    print(type(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t))
-    print(ROBOT.fkine(np.radians([-34.5, 62.2, 128.6, -175.1, -53, -29])).t)
-    print(ROBOT.fkine(np.radians([72.4, 28.3, 74.8, -187.8, -52.5, 98.5])).t)
     ROBOT.base *= sm.SE3.Rz(-90, 'deg') * sm.SE3.Tz(0.7)
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
 
@@ -84,7 +81,7 @@ def initialize_app(modes, robot_ip=None):
     y_point = np.array([0.26958, -0.11686, 0.7540])
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
     screen_origin = joint_to_SE3(origin, x_point , y_point)
-    screen_origin = screen_origin * sm.SE3.Tz(-0.0007)
+    screen_origin = screen_origin * sm.SE3.Tz(-0.02)
     #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
     screen_corner_z_offset = [0, 0, 3.5, 3.5]
@@ -168,10 +165,11 @@ def play():
 
         if "error" in response:
             return jsonify({"message": response["error"]}), 400
-
+        print(response)
         return jsonify(response), 200
 
     except Exception as e:
+        raise e
         return jsonify({"message": str(e)}), 500
     
 @app.route('/calibrate', methods=['POST'])
