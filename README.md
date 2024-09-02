@@ -157,6 +157,42 @@ Response:
 }
 ```
 
+Here is an example of how to call the `/play` endpoint with a draw move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [["X", "O", "X"], ["X", "O", "O"], ["O", "X", "X"]],
+    "move": "letter : None in None",
+    "game_is_finished": true,
+    "winner": None
+}
+```
+
+Here is an example of how to call the `/play` endpoint with another draw move:
+
+```sh
+curl -X POST http://localhost:5000/play -H "Content-Type: application/json" -d '{
+    "image": "base64_encoded_image_data"
+}'
+```
+
+Response:
+```json
+{
+    "grid_state": [["X", "O", "X"], ["X", "O", "O"], ["O", "X", " "]],
+    "move": "letter : X in (2,2)",
+    "game_is_finished": true,
+    "winner": None
+}
+```
+
 ## Code Documentation
 
 ### vision.py

@@ -177,8 +177,13 @@ class Lite6API(RoboticArmAPI):
     def _reset(self):
         self._api.reset(wait=True)
 
+    def _emergency_stop(self):
+        self._api.emergency_stop()
 
 
+    def _clear_errors(self):
+        self._api.set_state(0)
+        
     # Register error/warn changed callback
     def _error_warn_changed_callback(self, data):
         if data and data['error_code'] != 0:
@@ -232,25 +237,21 @@ class Lite6API(RoboticArmAPI):
         pass
 
     def get_joint_velocities(self):
-        pass
+        return self._api.get_joint_states()[1][1]
 
     def set_joint_velocity(self, joint_id, velocity):
         pass
 
-    def set_joint_velocities(self, qd, is_radian=True):
+    def set_joint_velocities(self, qd, is_radian=True, duration=-1):
         # Not optimal as this condition is checked on every call
         if not self._api.mode == 4:
             self._api.set_mode(4)
             time.sleep(1)
         if self._api.state == 5 and self._api.get_err_warn_code()[1][0]==0:
-            print(self._check_code())
-            print(self._api.get_state())
-            print(self._api.get_err_warn_code())
-            #print("code", self._api.get_err_warn_code())
             self._api.set_state(0)
         else:
-            return self._check_code()
-        return self._api.vc_set_joint_velocity(qd, is_radian=is_radian)
+            pass
+        return self._api.vc_set_joint_velocity(qd, is_radian=is_radian, duration=duration)
 
     def get_joint_acceleration(self, joint_id):
         pass
@@ -264,6 +265,9 @@ class Lite6API(RoboticArmAPI):
     def set_joint_accelerations(self, accelerations):
         pass
 
+    def get_joint_torque():
+        return self._api.get_joints_torque(self)
+    
     def reset_robot(self):
         pass
 

@@ -20,12 +20,13 @@ class TestPlayEndpoint(unittest.TestCase):
         }
         response = self.app.post('/calibrate', data=json.dumps(payload), content_type='application/json')
 
-        
-    def full_play_player_start(self):
+
+
+    def test_full_play_player_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.3, 0.2],
-        "size": [0.10, 0.10]
+        "center": [0.353, 0.149],
+        "size": [0.12, 0.12]
         }
 
         # Send the POST request to the draw_grid endpoint
@@ -120,8 +121,8 @@ class TestPlayEndpoint(unittest.TestCase):
     def full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
-        "center": [0.3, 0.1],
-        "size": [0.10, 0.10]
+        "center": [0.353, 0.149],
+        "size": [0.12, 0.12]
         }
 
         # Send the POST request to the draw_grid endpoint

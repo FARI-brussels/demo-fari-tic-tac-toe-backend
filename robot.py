@@ -1,4 +1,3 @@
-
 import time
 import roboticstoolbox as rtb
 import numpy as np
@@ -13,7 +12,8 @@ from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 10
 
-def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potential_field=False):
+
+def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potiential_field=False):
     J = robot.jacobe(robot.q)
     J_trans = J[:3, :]  # Extract the translational part of the Jacobian
     prog = MathematicalProgram()
@@ -22,7 +22,7 @@ def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potential_field
     # Define the error term for the cost function
     error = J @ qd_opt - v
     prog.AddCost(error.dot(error))
-    if potential_field:
+    if potiential_field:
         # Calculate the potential field gradient
         robot_position = robot.fkine(robot.q).t  # Get the current end-effector position
         _, gradient = potential_field(robot_position, z_boundary)
@@ -44,7 +44,6 @@ def potential_field(robot_position, z_limit, influence_distance=0.004):
 
     z = robot_position[2]
     if z- influence_distance < z_limit :
-        print("yo")
         # Calculate the potential for z approaching z_limit
         potential += 0.5 * (1.0 / (z_limit - z) - 1.0 / influence_distance)**2
         # Calculate the gradient of the potential
@@ -78,7 +77,10 @@ class OXOPlayer:
             self.simulation.add(self.robot)
             for ob in self.scene:
                 self.simulation.add(ob)
-        
+        if self.api:
+            self.move_to(self.q_rest, qd_max=0.2)
+            robot.q = self.api.get_joint_positions(is_radian=True)
+
 
     
     def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
@@ -95,8 +97,8 @@ class OXOPlayer:
             print(self.move_to(point, qd_max=qd_approach))
 
         
-
-    def move_to(self, dest, gain=2, treshold=0.001, qd_max=0.5): 
+        
+    def move_to(self, dest, gain=2, treshold=0.005, qd_max=1): 
         arrived = False
         while not arrived:
             if self.api:
@@ -108,17 +110,17 @@ class OXOPlayer:
                 v, arrived = rtb.cp_servo(self.robot.fkine(q), dest, gain=gain, threshold=treshold)
                 qd = jacobian_i_k_optimisation(self.robot, v, z_boundary = self.z_boundary, qd_max=qd_max)[1]
             else:
-                qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=treshold)
+                qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=50*treshold)
             self.robot.qd = qd
             self.step(qd, control_variable="qd")
         if self.api:
-            self.api.set_joint_velocities([0, 0, 0, 0, 0, 0], is_radian=True)
+            self.api.set_joint_velocities([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], is_radian=True, duration=self.dt)
         return arrived, self.robot.q
 
     def step(self, value, control_variable="qd"):
         if self.api:
             if control_variable == "qd":
-                self.api.set_joint_velocities(value, is_radian=True)
+                self.api.set_joint_velocities(value, is_radian=True, duration=self.dt)
             elif control_variable == "q":
                 self.api.set_joint_positions(value, is_radian=True)
             if not self.simulation:
@@ -131,37 +133,38 @@ class OXOPlayer:
             self.traj.append(self.robot._fk_dict())
             
     
-    def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1):
+    def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1.5):
+        self.api._clear_errors()
         grid_center = self.drawing_board_origin*grid_center
         self.grid_size = grid_size
         self.grid_center = grid_center
         
         for i in [-1, 1]:
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), treshold=0.001, qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), treshold=0.001,qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, -lift_height), qd_max=qd_max)
         for i in [-1, 1]: 
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0), treshold=0.001, qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0), treshold=0.001, qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def draw_x(self, center: sm.SE3, length, lift_height=0.01, qd_max=1):
         half_length = length / 2
-        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(-half_length, -half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, 0), treshold=0.001, qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, half_length, 0), treshold=0.001, qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, half_length, -lift_height), qd_max=qd_max)
         
-        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(-half_length, half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, -half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, 0), treshold=0.001, qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, -half_length, 0), treshold=0.001, qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def draw_o(self, center: sm.SE3, radius, lift_height=0.01, qd_max=1):
         self.move_to(center * sm.SE3(radius , 0, -lift_height), qd_max= qd_max)
@@ -172,7 +175,7 @@ class OXOPlayer:
         self.move_to(center * sm.SE3(0, radius, -lift_height))
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def play(self, image):
         """
@@ -191,10 +194,11 @@ class OXOPlayer:
             return {"error": "Please play first, the board has not changed"}
 
         # Find the best move
-        best_move, player_letter, win = find_best_move(grid_state)
+        best_move, player_letter, win, is_grid_complete = find_best_move(grid_state)
 
-        cell_center, size = self.get_cell_center(best_move)
+        
         if best_move:
+            cell_center, size = self.get_cell_center(best_move)
             if player_letter == 'X':
                 self.draw_x(cell_center, size / 2)
             else:
@@ -206,6 +210,8 @@ class OXOPlayer:
         self.previous_grid_state = grid_state
         if win:
             return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": player_letter}
+        elif is_grid_complete:
+            return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": True, "winner": None}
         else:
             return {"grid_state": grid_state, "move": f"letter: {player_letter} in {best_move}", "game_is_finished": False, "winner": None}
        
@@ -215,15 +221,23 @@ class OXOPlayer:
         # Calculate the offset from the top-left corner of the grid to the center
         half_grid_size = self.grid_size / 2
         row, col = cell_index
-        y = -half_grid_size + (col + 0.5) * cell_size
-        x = half_grid_size - (row + 0.5) * cell_size
+        y = half_grid_size - (row + 0.5) * cell_size
+        x = half_grid_size - (col + 0.5) * cell_size
         return self.grid_center*sm.SE3(x,y,0), cell_size
 
 
     def save_traj(self, path):
         json.dump(self.traj, open(path, "w"))
 
+    def cleanup(self):
+        print("yo")
+        self.api._emergency_stop()
+
+
     
+ 
+
+  
  
 
   

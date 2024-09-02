@@ -1,6 +1,8 @@
 # main.py
 
 import argparse
+import signal
+import atexit
 from flask import Flask, request, jsonify
 import base64
 import numpy as np
@@ -17,6 +19,36 @@ import cv2
 import os
 from robotsAPI import Lite6API
 
+
+
+def joint_to_SE3(origin, x_point, y_point):
+    # Compute the Cartesian coordinates of the origin and the two points
+    # Define basis vectors for the new frame
+    x_prime = x_point - origin
+    x_prime = x_prime / np.linalg.norm(x_prime)  # Normalize to unit vector
+    
+    # Vector in the plane but orthogonal to x_prime
+    temp_vec = y_point - origin
+    z_prime = np.cross(x_prime, temp_vec)
+    z_prime = z_prime / np.linalg.norm(z_prime)  # Normalize to unit vector
+    
+    # y_prime is orthogonal to both x_prime and z_prime
+    y_prime = np.cross(z_prime, x_prime)
+    y_prime = y_prime / np.linalg.norm(y_prime)  # Normalize to unit vector
+    
+    # Rotation matrix
+    R = np.column_stack((x_prime, y_prime, z_prime))
+    
+    # Translation vector
+    t = origin
+    
+    # Create SE(3) transformation matrix
+    T = np.eye(4)
+    T[:3, :3] = R
+    T[:3, 3] = t
+    
+    return sm.SE3(T)
+
 app = Flask(__name__)
 
 def initialize_app(modes, robot_ip=None):
@@ -28,6 +60,10 @@ def initialize_app(modes, robot_ip=None):
         raise ValueError("At least one mode must be specified: SIMULATION or REAL.")
 
     ROBOT = rtb.models.URDF.Lite6()
+    origin = np.array([0.40603, 0.26181, 0.053635])
+    x_point = np.array([0.41053, -0.25917, 0.056265])
+    y_point = np.array([0.11686, 0.26958,0.051699])
+
     ROBOT.base *= sm.SE3.Rz(-90, 'deg') * sm.SE3.Tz(0.7)
     ROBOT_IP = robot_ip if robot_ip else "192.168.1.159"
 
@@ -42,10 +78,15 @@ def initialize_app(modes, robot_ip=None):
     )
     
     table.T = table.T * sm.SE3.Rz(90, 'deg')* sm.SE3.Tz(0.7) 
+    origin = np.array([0.26181, -0.40603, 0.7570])
+    x_point = np.array([-0.25917, -0.41053, 0.7570])
+    y_point = np.array([0.26958, -0.11686, 0.7540])
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
-    screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
+    screen_origin = joint_to_SE3(origin, x_point , y_point)
+    screen_origin = screen_origin * sm.SE3.Tz(-0.003)
+    #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
-    
+    screen_corner_z_offset = [0, 0, 3.5, 3.5]
     if "SIMULATION" in MODES:
         simulation = swift.Swift()
         scene.append(table)
@@ -127,35 +168,22 @@ def play():
 
         if "error" in response:
             return jsonify({"message": response["error"]}), 400
-
+        print(response)
         return jsonify(response), 200
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
     
 
-@app.route('/calibrate', methods=['POST'])
-def calibrate():
-    try:
-        data = request.get_json()
-        center = data.get('center')
-        size = data.get('size')
 
-        if not center or not size:
-            return jsonify({"message": "Invalid input"}), 400
-
-        center_position = sm.SE3(center[0], center[1], 0)  # Convert to SE3
-        size_value = size[0]  # Assuming size is a single value for simplicity
-
-        oxoplayer.calibrate_z_plane(center_position, size_value)
-        return jsonify({"message": "Grid generated successfully"}), 200
-
-    except Exception as e:
-        raise e
-        return jsonify({"message": str(e)}), 500
-
-
-
+def on_exit():
+    print("Terminal closed. Performing cleanup...")
+    # Call the specific function you need
+    if oxoplayer:
+        oxoplayer.cleanup()  # Assuming you have a cleanup method in OXOPlayer
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func:
+        func()
 
 
 if __name__ == '__main__':
@@ -165,3 +193,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     initialize_app(args.modes, args.robot_ip).run(debug=True)
+    # Register the exit handler
+    signal.signal(signal.SIGINT, lambda sig, frame: on_exit())
+    signal.signal(signal.SIGTERM, lambda sig, frame: on_exit())
+    atexit.register(on_exit)
+
+    app.run(debug=True)
