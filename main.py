@@ -1,6 +1,8 @@
 # main.py
 
 import argparse
+import signal
+import atexit
 from flask import Flask, request, jsonify
 import base64
 import numpy as np
@@ -81,7 +83,7 @@ def initialize_app(modes, robot_ip=None):
     y_point = np.array([0.26958, -0.11686, 0.7540])
     #screen_origin = table.T * sm.SE3.Tx(-0.1) * sm.SE3.Ty(-0.2) * sm.SE3.Tz(0.1) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')
     screen_origin = joint_to_SE3(origin, x_point , y_point)
-    screen_origin = screen_origin * sm.SE3.Tz(-0.02)
+    screen_origin = screen_origin * sm.SE3.Tz(-0.003)
     #screen_origin = sm.SE3(ROBOT.fkine(np.radians([32.1, 82.4, 165, -178.7, -72.7, -190.5])).t) * sm.SE3.RPY([0, 180, 0], order='xyz', unit='deg')# * sm.SE3.Tz(0.002)
     axes = sg.Axes(length=0.1, pose=screen_origin)
     screen_corner_z_offset = [0, 0, 3.5, 3.5]
@@ -169,28 +171,17 @@ def play():
         return jsonify(response), 200
 
     except Exception as e:
-        raise e
         return jsonify({"message": str(e)}), 500
     
-@app.route('/calibrate', methods=['POST'])
-def calibrate():
-    try:
-        data = request.get_json()
-        center = data.get('center')
-        size = data.get('size')
 
-        if not center or not size:
-            return jsonify({"message": "Invalid input"}), 400
-
-        center_position = sm.SE3(center[0], center[1], 0)  # Convert to SE3
-        size_value = size[0]  # Assuming size is a single value for simplicity
-
-        oxoplayer.calibrate_z_plane(center_position, size_value)
-        return jsonify({"message": "Grid generated successfully"}), 200
-
-    except Exception as e:
-        raise e
-        return jsonify({"message": str(e)}), 500
+def on_exit():
+    print("Terminal closed. Performing cleanup...")
+    # Call the specific function you need
+    if oxoplayer:
+        oxoplayer.cleanup()  # Assuming you have a cleanup method in OXOPlayer
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func:
+        func()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run the Tic-Tac-Toe Flask app.")
@@ -199,3 +190,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     initialize_app(args.modes, args.robot_ip).run(debug=True)
+    # Register the exit handler
+    signal.signal(signal.SIGINT, lambda sig, frame: on_exit())
+    signal.signal(signal.SIGTERM, lambda sig, frame: on_exit())
+    atexit.register(on_exit)
+
+    app.run(debug=True)

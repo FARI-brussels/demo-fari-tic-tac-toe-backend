@@ -77,7 +77,7 @@ class OXOPlayer:
 
         
         
-    def move_to(self, dest, gain=2, treshold=0.001, qd_max=1): 
+    def move_to(self, dest, gain=2, treshold=0.005, qd_max=1): 
         arrived = False
         while not arrived:
             if self.api:
@@ -89,7 +89,7 @@ class OXOPlayer:
                 v, arrived = rtb.cp_servo(self.robot.fkine(q), dest, gain=gain, threshold=treshold)
                 qd = jacobian_i_k_optimisation(self.robot, v, z_boundary = self.z_boundary, qd_max=qd_max)[1]
             else:
-                qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=treshold)
+                qd, arrived = rtb.jp_servo(q, dest, gain=gain, threshold=50*treshold)
             self.robot.qd = qd
             self.step(qd, control_variable="qd")
         if self.api:
@@ -110,19 +110,6 @@ class OXOPlayer:
             self.simulation.step(self.dt)
         if self.record:
             self.traj.append(self.robot._fk_dict())
-
-    def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
-        grid_center = self.drawing_board_origin * grid_center
-        points = [
-            (i, j)
-            for i in [-1, 0, 1]
-            for j in [-1, 0, 1]
-        ]
-        for (i, j) in points:
-            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
-            self.move_to(point, qd_max=self.qd_max)
-            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, lift_height)
-            print(self.move_to(point, qd_max=qd_approach))
             
     
     def draw_grid(self, grid_center, grid_size, lift_height=0.01, qd_max=1.5):
@@ -133,30 +120,30 @@ class OXOPlayer:
         
         for i in [-1, 1]:
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, -lift_height),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * i, 0), treshold=0.001, qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, 0), treshold=0.001,qd_max=qd_max)
             self.move_to(grid_center * sm.SE3(grid_size/6 * i, grid_size/2 * -i, -lift_height), qd_max=qd_max)
         for i in [-1, 1]: 
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
-            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0)*sm.SE3.Rz(90, unit='deg'),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, -lift_height),  qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * -i, grid_size/6 * i, 0), treshold=0.001, qd_max=qd_max)
+            self.move_to(grid_center * sm.SE3(grid_size/2 * i, grid_size/6 * i, 0), treshold=0.001, qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def draw_x(self, center: sm.SE3, length, lift_height=0.01, qd_max=1):
         half_length = length / 2
-        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(-half_length, -half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, half_length, 0)*sm.SE3.Rz(-45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, -lift_height), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, -half_length, 0), treshold=0.001, qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, half_length, 0), treshold=0.001, qd_max=qd_max)
         self.move_to(center * sm.SE3(half_length, half_length, -lift_height), qd_max=qd_max)
         
-        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(-half_length, half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
-        self.move_to(center * sm.SE3(half_length, -half_length, 0)*sm.SE3.Rz(45, unit='deg'), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, -lift_height), qd_max=qd_max)
+        self.move_to(center * sm.SE3(-half_length, half_length, 0), treshold=0.001, qd_max=qd_max)
+        self.move_to(center * sm.SE3(half_length, -half_length, 0), treshold=0.001, qd_max=qd_max)
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def draw_o(self, center: sm.SE3, radius, lift_height=0.01, qd_max=1):
         self.move_to(center * sm.SE3(radius , 0, -lift_height), qd_max= qd_max)
@@ -167,7 +154,7 @@ class OXOPlayer:
         self.move_to(center * sm.SE3(0, radius, -lift_height))
         if self.q_rest.any():
             #probably better to implement qrest
-            self.move_to(self.q_rest, qd_max=0.2)
+            self.move_to(self.q_rest, qd_max=qd_max)
 
     def play(self, image):
         """
@@ -220,6 +207,11 @@ class OXOPlayer:
 
     def save_traj(self, path):
         json.dump(self.traj, open(path, "w"))
+
+    def cleanup(self):
+        print("yo")
+        self.api._emergency_stop()
+
 
     
  

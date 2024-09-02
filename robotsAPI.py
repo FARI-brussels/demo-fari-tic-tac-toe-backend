@@ -177,6 +177,9 @@ class Lite6API(RoboticArmAPI):
     def _reset(self):
         self._api.reset(wait=True)
 
+    def _emergency_stop(self):
+        self._api.emergency_stop()
+
 
     def _clear_errors(self):
         self._api.set_state(0)
