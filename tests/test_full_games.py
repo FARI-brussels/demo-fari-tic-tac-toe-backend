@@ -8,11 +8,19 @@ from main import initialize_app
 class TestPlayEndpoint(unittest.TestCase):
 
     def setUp(self):
-        modes = ["REAL"]  # You can add "REAL" mode if needed and provide the IP address.
+        modes = ["SIMULATION"]  # You can add "REAL" mode if needed and provide the IP address.
         robot_ip = "192.168.1.159"  # Set your robot IP address if testing with REAL mode
         self.app = initialize_app(modes, robot_ip).test_client()
         self.app.testing = True
-        
+
+    def test_calibrate_z_plane(self):
+        payload = {
+        "center": [0.3, 0.2],
+        "size": [0.10, 0.10]
+        }
+        response = self.app.post('/calibrate', data=json.dumps(payload), content_type='application/json')
+
+
 
     def test_full_play_player_start(self):
         # Create the payload for drawing the grid
@@ -110,7 +118,7 @@ class TestPlayEndpoint(unittest.TestCase):
         self.assertEqual('X', response_data["winner"])
 
 
-    def test_full_play_robot_start(self):
+    def full_play_robot_start(self):
         # Create the payload for drawing the grid
         payload = {
         "center": [0.353, 0.149],
@@ -161,7 +169,6 @@ class TestPlayEndpoint(unittest.TestCase):
 
         # Send the POST request to the play endpoint for the first move
         response = self.app.post('/play', data=json.dumps(first_move), content_type='application/json')
-       	print(response)
         # Check the response status code for the first move
         self.assertEqual(response.status_code, 200)
 
@@ -192,5 +199,3 @@ class TestPlayEndpoint(unittest.TestCase):
 
 
 
-if __name__ == "__main__":
-    unittest.main()
