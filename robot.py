@@ -12,6 +12,7 @@ from tictactoe_engine import find_best_move
 
 CONTROL_FREQUENCY = 10
 
+
 def jacobian_i_k_optimisation(robot, v, z_boundary= 0, qd_max=1, potiential_field=False):
     J = robot.jacobe(robot.q)
     J_trans = J[:3, :]  # Extract the translational part of the Jacobian
@@ -49,6 +50,7 @@ def potential_field(robot_position, z_limit, influence_distance=0.004):
         gradient[2] += (1.0 / (z_limit - z)**3) * (1.0 / (z_limit - z) - 1.0 / influence_distance)
     return potential, gradient
 
+
 class OXOPlayer:
     def __init__(self, robot, drawing_board_origin, q_rest=None, qd_max = 1, z_boundary = 0, control_loop_rate=25, api=None, simulation=None, scene=None, record=False):
         self.robot = robot
@@ -66,14 +68,32 @@ class OXOPlayer:
         self.grid_size = None
         self.grid_center = None
         self.z_boundary = z_boundary
+        if self.api:
+            self.move_to(self.q_rest, qd_max=0.2)
+            self.robot.q = self.api.get_joint_positions(is_radian=True)
         if self.simulation:
             self.simulation.launch(realtime=True)
             self.simulation.add(self.robot)
-            for ob in scene:
+            for ob in self.scene:
                 self.simulation.add(ob)
         if self.api:
             self.move_to(self.q_rest, qd_max=0.2)
             robot.q = self.api.get_joint_positions(is_radian=True)
+
+
+    
+    def calibrate_z_plane(self, grid_center, grid_size, qd_approach=0.1, lift_height=0.01):
+        grid_center = self.drawing_board_origin * grid_center
+        points = [
+            (i, j)
+            for i in [-1, 0, 1]
+            for j in [-1, 0, 1]
+        ]
+        for (i, j) in points:
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, -lift_height)
+            self.move_to(point, qd_max=self.qd_max)
+            point = grid_center * sm.SE3(grid_size / 3 * i, grid_size / 3 * j, lift_height)
+            print(self.move_to(point, qd_max=qd_approach))
 
         
         

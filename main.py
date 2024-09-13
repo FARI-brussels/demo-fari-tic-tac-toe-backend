@@ -102,6 +102,7 @@ def initialize_app(modes, robot_ip=None):
     oxoplayer = OXOPlayer(ROBOT, drawing_board_origin=screen_origin, z_boundary = screen_origin.t[2]-0.005, q_rest=q_rest, api=api, simulation=simulation, scene=scene, record=False)
     return app
 
+
 @app.route('/draw_grid', methods=['POST'])
 def draw_grid():
     """
@@ -174,6 +175,7 @@ def play():
         return jsonify({"message": str(e)}), 500
     
 
+
 def on_exit():
     print("Terminal closed. Performing cleanup...")
     # Call the specific function you need
@@ -182,6 +184,7 @@ def on_exit():
     func = request.environ.get('werkzeug.server.shutdown')
     if func:
         func()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run the Tic-Tac-Toe Flask app.")
