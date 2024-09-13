@@ -69,6 +69,10 @@ class OXOPlayer:
         self.grid_center = None
         self.z_boundary = z_boundary
         if self.api:
+<<<<<<< HEAD
+=======
+            self.api.connect()
+>>>>>>> 91294e8edb6d5422b99b41ff4067e9da6e9137ea
             self.move_to(self.q_rest, qd_max=0.2)
             self.robot.q = self.api.get_joint_positions(is_radian=True)
         if self.simulation:
